@@ -949,9 +949,9 @@ async def text_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             f"📝 {user_text}"
         )
         try:
-            await update.message.bot.send_message(
-                ADMIN_CHAT_ID, admin_msg, parse_mode="Markdown"
-            )
+            await ctx.bot.send_message(
+    ADMIN_CHAT_ID, admin_msg, parse_mode="Markdown"
+)
         except Exception as e:
             logging.error(f"Помилка надсилання адміну: {e}")
         ctx.user_data.pop("awaiting", None)
