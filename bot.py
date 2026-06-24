@@ -444,6 +444,7 @@ def format_schedule(schedule: dict) -> str:
 # ═══════════════════════════════════════════════════════════
 async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
+    logging.info(f"USER ID: {user.id} | username: {user.username}")  # ← додайте цей рядок
     text = (
         f"Привіт, {user.first_name}! 👋\n\n"
         "Я — бот Репетиторського центру *\"Константа\"* 🎓\n\n"
