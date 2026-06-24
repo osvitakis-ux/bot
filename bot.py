@@ -442,6 +442,8 @@ def format_schedule(schedule: dict) -> str:
 # ═══════════════════════════════════════════════════════════
 # ХЕНДЛЕРИ
 # ═══════════════════════════════════════════════════════════
+async def text_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    logging.info(f"CHAT ID: {update.effective_chat.id} | type: {update.effective_chat.type}")
 async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     logging.info(f"USER ID: {user.id} | username: {user.username}")  # ← додайте цей рядок
