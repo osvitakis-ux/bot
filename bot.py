@@ -963,14 +963,24 @@ async def text_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 def main():
     app = Application.builder().token(BOT_TOKEN).build()
 
+    async def test_admin(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+        try:
+            await ctx.bot.send_message(
+                chat_id=ADMIN_CHAT_ID,
+                text=f"✅ Тест! ADMIN_CHAT_ID={ADMIN_CHAT_ID}"
+            )
+            await update.message.reply_text("Надіслано! Перевірте чат.")
+        except Exception as e:
+            await update.message.reply_text(f"❌ Помилка: {e}")
+
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.PHOTO, get_photo_id))   # ← отримання file_id
+    app.add_handler(CommandHandler("test", test_admin))
+    app.add_handler(MessageHandler(filters.PHOTO, get_photo_id))
     app.add_handler(CallbackQueryHandler(button_handler))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, text_handler))
 
     print("🤖 Бот «Константа» запущено! Натисніть Ctrl+C для зупинки.")
     app.run_polling(allowed_updates=Update.ALL_TYPES)
-
 
 if __name__ == "__main__":
     main()
