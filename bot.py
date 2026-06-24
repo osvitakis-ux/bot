@@ -459,7 +459,15 @@ async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         text, parse_mode="Markdown", reply_markup=main_menu_keyboard()
     )
-
+async def test2(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    import httpx
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    async with httpx.AsyncClient() as client:
+        r = await client.post(url, json={
+            "chat_id": ADMIN_CHAT_ID,
+            "text": "Тест 2 — прямий запит!"
+        })
+        await update.message.reply_text(f"Відповідь: {r.status_code} | {r.text}")
 # ── команда для отримання file_id фото ──────────────────
 async def get_photo_id(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Надішліть боту фото — отримаєте file_id для вставки у TUTORS."""
@@ -963,7 +971,7 @@ async def text_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 # ═══════════════════════════════════════════════════════════
 def main():
     app = Application.builder().token(BOT_TOKEN).build()
-
+    app.add_handler(CommandHandler("test2", test2))
     async def test_admin(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         try:
             await ctx.bot.send_message(
