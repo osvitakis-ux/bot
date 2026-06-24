@@ -840,10 +840,10 @@ async def button_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             f"📝 {feedback_text}\n"
             f"Оцінка: {star_str} ({stars}/5)"
         )
-        try:
-            await q.bot.send_message(ADMIN_CHAT_ID, admin_msg, parse_mode="Markdown")
-        except Exception:
-            pass
+       try:
+    await q.bot.send_message(ADMIN_CHAT_ID, admin_msg, parse_mode="Markdown")
+except Exception as e:
+    logging.error(f"Помилка надсилання адміну: {e}")
         ctx.user_data.pop("awaiting", None)
         await q.edit_message_text(
             f"🙏 *Дякуємо за відгук!*\n\n{star_str}\n\nВаша думка дуже важлива для нас!",
