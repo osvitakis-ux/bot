@@ -15,14 +15,24 @@ from telegram.ext import (
 # ═══════════════════════════════════════════════════════════
 # НАЛАШТУВАННЯ — змінюйте тільки цей блок
 # ═══════════════════════════════════════════════════════════
-import os
-BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
-ADMIN_CHAT_ID = int(os.environ.get("ADMIN_CHAT_ID", 0))
+BOT_TOKEN = "ВАШ_ТОКЕН_ТУТ"
+ADMIN_CHAT_ID = 123456789  # Дізнатися у @userinfobot
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO
 )
+
+
+# ═══════════════════════════════════════════════════════════
+# НАДСИЛАННЯ ПОДІЙ В ГРУПУ АДМІНА
+# ═══════════════════════════════════════════════════════════
+async def notify(bot, msg: str):
+    """Надіслати повідомлення адміну / у групу."""
+    try:
+        await bot.send_message(ADMIN_CHAT_ID, msg, parse_mode="Markdown")
+    except Exception as e:
+        logging.error(f"notify error: {e}")
 
 
 # ═══════════════════════════════════════════════════════════
@@ -442,11 +452,8 @@ def format_schedule(schedule: dict) -> str:
 # ═══════════════════════════════════════════════════════════
 # ХЕНДЛЕРИ
 # ═══════════════════════════════════════════════════════════
-async def text_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    logging.info(f"CHAT ID: {update.effective_chat.id} | type: {update.effective_chat.type}")
 async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
-    logging.info(f"USER ID: {user.id} | username: {user.username}")  # ← додайте цей рядок
     text = (
         f"Привіт, {user.first_name}! 👋\n\n"
         "Я — бот Репетиторського центру *\"Константа\"* 🎓\n\n"
@@ -461,15 +468,7 @@ async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         text, parse_mode="Markdown", reply_markup=main_menu_keyboard()
     )
-async def test2(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    import httpx
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-    async with httpx.AsyncClient() as client:
-        r = await client.post(url, json={
-            "chat_id": ADMIN_CHAT_ID,
-            "text": "Тест 2 — прямий запит!"
-        })
-        await update.message.reply_text(f"Відповідь: {r.status_code} | {r.text}")
+
 # ── команда для отримання file_id фото ──────────────────
 async def get_photo_id(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Надішліть боту фото — отримаєте file_id для вставки у TUTORS."""
@@ -677,6 +676,13 @@ async def button_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
              InlineKeyboardButton("🏠 Меню",  callback_data="main_menu")],
         ])
 
+        user = update.effective_user
+        await notify(ctx.bot,
+            f"👀 *Переглянуто профіль репетитора*\n"
+            f"👤 {user.first_name} (@{user.username or 'без ніку'})\n"
+            f"👩‍🏫 {t['name']}\n"
+            f"📚 {', '.join(subject_name(s) for s in t['subjects'])}"
+        )
         if t.get("photo_id"):
             # є фото — надсилаємо нове повідомлення з фото
             await q.message.reply_photo(
@@ -810,6 +816,14 @@ async def button_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
                 pct = sc / total * 100
                 grade = ("🥇 Чудово!" if pct >= 80 else "👍 Добре!" if pct >= 60
                          else "📚 Варто повторити матеріал")
+                user = update.effective_user
+                await notify(ctx.bot,
+                    f"📝 *Результат тесту*\n"
+                    f"👤 {user.first_name} (@{user.username or 'без ніку'})\n"
+                    f"📚 Предмет: {t['name']}\n"
+                    f"🏆 Результат: *{sc}/{total}* ({pct:.0f}%)\n"
+                    f"{grade}"
+                )
                 await q.edit_message_text(
                     f"{res}\n\n🏁 *Тест завершено!*\n"
                     f"Результат: *{sc}/{total}* ({pct:.0f}%)\n{grade}",
@@ -852,10 +866,7 @@ async def button_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             f"📝 {feedback_text}\n"
             f"Оцінка: {star_str} ({stars}/5)"
         )
-        try:
-           await ctx.bot.send_message(ADMIN_CHAT_ID, admin_msg, parse_mode="Markdown")
-        except Exception as e:
-            logging.error(f"Помилка надсилання адміну: {e}")
+        await notify(ctx.bot, admin_msg)
         ctx.user_data.pop("awaiting", None)
         await q.edit_message_text(
             f"🙏 *Дякуємо за відгук!*\n\n{star_str}\n\nВаша думка дуже важлива для нас!",
@@ -920,11 +931,26 @@ async def text_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     elif awaiting == "game_answer":
         game = ctx.user_data.get("current_game", {})
         correct = game.get("ans", "").lower()
-        if user_text.lower() in correct or correct in user_text.lower():
+        is_correct = user_text.lower() in correct or correct in user_text.lower()
+        if is_correct:
             reply = "✅ *Правильно! Молодець!* 🎉"
+            result_emoji = "✅"
         else:
             reply = (f"❌ Не зовсім. Правильна відповідь: *{game.get('ans','?')}*\n"
                      f"💡 {game.get('hint','')}")
+            result_emoji = "❌"
+        user = update.effective_user
+        game_names = {"number": "Числові послідовності", "riddle": "Логічні загадки",
+                      "anagram": "Анаграми", "word": "Задача-головоломка"}
+        gname = game_names.get(game.get("type",""), "Гра")
+        await notify(ctx.bot,
+            f"🎮 *Результат гри*\n"
+            f"👤 {user.first_name} (@{user.username or 'без ніку'})\n"
+            f"🎯 {gname}\n"
+            f"❓ {game.get('q','?')}\n"
+            f"💬 Відповідь: {user_text}\n"
+            f"{result_emoji} {'Правильно!' if is_correct else f'Неправильно. Вірно: {game.get(chr(97)+chr(110)+chr(115),chr(63))}'}"
+        )
         ctx.user_data.pop("awaiting", None)
         await update.message.reply_text(
             reply, parse_mode="Markdown",
@@ -948,12 +974,7 @@ async def text_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             f"{tutor_info}\n"
             f"📝 {user_text}"
         )
-        try:
-            await ctx.bot.send_message(
-    ADMIN_CHAT_ID, admin_msg, parse_mode="Markdown"
-)
-        except Exception as e:
-            logging.error(f"Помилка надсилання адміну: {e}")
+        await notify(ctx.bot, admin_msg)
         ctx.user_data.pop("awaiting", None)
         await update.message.reply_text(
             "📨 Заявку отримано! Ми зателефонуємо вам найближчим часом. 🙏",
@@ -973,25 +994,15 @@ async def text_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 # ═══════════════════════════════════════════════════════════
 def main():
     app = Application.builder().token(BOT_TOKEN).build()
-    app.add_handler(CommandHandler("test2", test2))
-    async def test_admin(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-        try:
-            await ctx.bot.send_message(
-                chat_id=ADMIN_CHAT_ID,
-                text=f"✅ Тест! ADMIN_CHAT_ID={ADMIN_CHAT_ID}"
-            )
-            await update.message.reply_text("Надіслано! Перевірте чат.")
-        except Exception as e:
-            await update.message.reply_text(f"❌ Помилка: {e}")
 
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("test", test_admin))
-    app.add_handler(MessageHandler(filters.PHOTO, get_photo_id))
+    app.add_handler(MessageHandler(filters.PHOTO, get_photo_id))   # ← отримання file_id
     app.add_handler(CallbackQueryHandler(button_handler))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, text_handler))
 
     print("🤖 Бот «Константа» запущено! Натисніть Ctrl+C для зупинки.")
     app.run_polling(allowed_updates=Update.ALL_TYPES)
+
 
 if __name__ == "__main__":
     main()
