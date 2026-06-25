@@ -18,9 +18,9 @@ from telegram.ext import (
 # ═══════════════════════════════════════════════════════════
 # НАЛАШТУВАННЯ — змінюйте тільки цей блок
 # ═══════════════════════════════════════════════════════════
-BOT_TOKEN = "ВАШ_ТОКЕН_ТУТ"
-ADMIN_CHAT_ID = 123456789  # Дізнатися у @userinfobot
-
+import os
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
+ADMIN_CHAT_ID = int(os.environ.get("ADMIN_CHAT_ID", 0))
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO
