@@ -10,7 +10,8 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 import logging
 
-DATA_FILE = os.path.join(os.path.dirname(__file__), "data.json")
+DATA_FILE = os.environ.get("DATA_PATH", os.path.join(os.path.dirname(__file__), "data.json"))
+_REPO_DATA = os.path.join(os.path.dirname(__file__), "data.json")
 from config import BOT_TOKEN, ADMIN_CHAT_ID
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "konstanta2024")
 ADMIN_PORT = int(os.environ.get("PORT", 8080))
@@ -20,17 +21,15 @@ _lock = threading.Lock()
 
 def load_data():
     with _lock:
-        if not os.path.exists(DATA_FILE):
-            # Перший запуск — копіюємо початкові дані з репозиторію
-            src_file = os.path.join(os.path.dirname(__file__), "data.json")
-            if os.path.exists(src_file):
+        if DATA_FILE != _REPO_DATA and not os.path.exists(DATA_FILE):
+            # Перший запуск з Volume — копіюємо лише якщо файл ще не існує
+            if os.path.exists(_REPO_DATA):
                 import shutil
                 os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
-                shutil.copy2(src_file, DATA_FILE)
-                logging.info(f"✅ data.json скопійовано у Volume: {DATA_FILE}")
-            else:
-                return {}
-        with open(DATA_FILE, "r", encoding="utf-8") as f:
+                shutil.copy2(_REPO_DATA, DATA_FILE)
+                logging.info(f"✅ Перший запуск: дані скопійовано у Volume: {DATA_FILE}")
+        target = DATA_FILE if os.path.exists(DATA_FILE) else _REPO_DATA
+        with open(target, "r", encoding="utf-8") as f:
             return json.load(f)
 
 
