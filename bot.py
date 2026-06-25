@@ -8,17 +8,13 @@ import json
 import os
 import logging
 import random
+from config import BOT_TOKEN, ADMIN_CHAT_ID, ADMIN_PASSWORD
 from admin import start_admin_in_thread
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application, CommandHandler, CallbackQueryHandler,
     MessageHandler, filters, ContextTypes,
 )
-
-# ═══════════════════════════════════════════════════════════
-# НАЛАШТУВАННЯ — змінюйте тільки цей блок
-# ═══════════════════════════════════════════════════════════
-from config import BOT_TOKEN, ADMIN_CHAT_ID, ADMIN_PASSWORD
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -40,11 +36,17 @@ async def notify(bot, msg: str):
 # ═══════════════════════════════════════════════════════════
 # ДИНАМІЧНЕ ЗАВАНТАЖЕННЯ ДАНИХ З data.json
 # ═══════════════════════════════════════════════════════════
-DATA_FILE = os.path.join(os.path.dirname(__file__), "data.json")
+DATA_FILE = os.environ.get("DATA_PATH", os.path.join(os.path.dirname(__file__), "data.json"))
 
 def load_db():
     """Завантажити актуальні дані з data.json."""
     try:
+        if not os.path.exists(DATA_FILE):
+            src_file = os.path.join(os.path.dirname(__file__), "data.json")
+            if os.path.exists(src_file):
+                import shutil
+                os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
+                shutil.copy2(src_file, DATA_FILE)
         with open(DATA_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
     except Exception as e:
