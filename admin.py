@@ -20,6 +20,16 @@ _lock = threading.Lock()
 
 def load_data():
     with _lock:
+        if not os.path.exists(DATA_FILE):
+            # Перший запуск — копіюємо початкові дані з репозиторію
+            src_file = os.path.join(os.path.dirname(__file__), "data.json")
+            if os.path.exists(src_file):
+                import shutil
+                os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
+                shutil.copy2(src_file, DATA_FILE)
+                logging.info(f"✅ data.json скопійовано у Volume: {DATA_FILE}")
+            else:
+                return {}
         with open(DATA_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
 
