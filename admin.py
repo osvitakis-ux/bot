@@ -126,6 +126,8 @@ hr{border:none;border-top:1px solid var(--b);margin:18px 0}
     <div class="nav-item" onclick="showPage('branches',this)"><span>📍</span> Філіали</div>
     <div class="nav-item" onclick="showPage('subjects',this)"><span>📚</span> Предмети</div>
     <div class="nav-item" onclick="showPage('feedbacks',this)"><span>💬</span> Відгуки</div>
+    <div class="nav-item" onclick="showPage('tests',this)"><span>📝</span> Тести</div>
+    <div class="nav-item" onclick="showPage('games',this)"><span>🎮</span> Ігри</div>
   </nav>
   <div class="sidebar-footer"><span class="dot"></span>Бот активний</div>
 </aside>
@@ -176,6 +178,18 @@ hr{border:none;border-top:1px solid var(--b);margin:18px 0}
     <div id="feedbacks-list"></div>
   </div>
 
+  <!-- TESTS -->
+  <div class="page" id="page-tests">
+    <div class="ph"><h2>Тести</h2><p>Редагуйте питання та варіанти відповідей</p></div>
+    <div id="tests-list"></div>
+  </div>
+
+  <!-- GAMES -->
+  <div class="page" id="page-games">
+    <div class="ph"><h2>Ігри</h2><p>Редагуйте завдання та підказки</p></div>
+    <div id="games-list"></div>
+  </div>
+
 </main>
 </div>
 
@@ -199,6 +213,28 @@ hr{border:none;border-top:1px solid var(--b);margin:18px 0}
     <div style="display:flex;gap:8px;justify-content:flex-end">
       <button class="btn btn-g" onclick="closeMod('modal-tutor')">Скасувати</button>
       <button class="btn btn-p" onclick="saveTutor()">💾 Зберегти</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL QUESTION -->
+<div class="mo" id="modal-question">
+  <div class="modal">
+    <div class="mh"><span class="mt" id="qmodal-title">Редагувати питання</span><button class="xb" onclick="closeMod('modal-question')">✕</button></div>
+    <input type="hidden" id="q-section">
+    <input type="hidden" id="q-key">
+    <input type="hidden" id="q-idx">
+    <div class="field" style="margin-bottom:14px"><label>Питання</label><textarea id="q-text" rows="3"></textarea></div>
+    <div id="q-opts-wrap">
+      <div class="sl">Варіанти відповідей</div>
+      <div id="q-opts"></div>
+    </div>
+    <div class="field" style="margin-bottom:14px"><label>Підказка (для ігор)</label><input id="q-hint" placeholder="Необов'язково"></div>
+    <div class="field" style="margin-bottom:14px"><label>Правильна відповідь (для ігор — текст, для тестів — номер 0-3)</label><input id="q-ans"></div>
+    <hr>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-g" onclick="closeMod('modal-question')">Скасувати</button>
+      <button class="btn btn-p" onclick="saveQuestion()">💾 Зберегти</button>
     </div>
   </div>
 </div>
@@ -282,6 +318,8 @@ function showPage(id, el){
   if(id==='branches') renderBranches();
   if(id==='subjects') renderSubjects();
   if(id==='feedbacks') renderFeedbacks();
+  if(id==='tests') renderTests();
+  if(id==='games') renderGames();
 }
 
 // ── TUTORS ──
@@ -433,6 +471,134 @@ function renderFeedbacks(){
           <div style="font-size:11px;color:var(--td)">${f.date||''}</div>
         </div>`).join('')
     : '<div style="color:var(--tm);text-align:center;padding:40px">Відгуків ще немає</div>';
+}
+
+// ── TESTS ──
+function renderTests(){
+  const tests=D.tests||{};
+  document.getElementById('tests-list').innerHTML=Object.entries(tests).map(([key,t])=>`
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-header">
+        <span class="card-title">📝 ${t.name}</span>
+        <button class="btn btn-s btn-sm" onclick="addQuestion('tests','${key}')">＋ Питання</button>
+      </div>
+      <div>${(t.questions||[]).map((q,i)=>`
+        <div style="background:var(--s2);border:1px solid var(--b);border-radius:8px;padding:12px;margin-bottom:8px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start">
+          <div>
+            <div style="font-size:13px;font-weight:600;margin-bottom:6px">${i+1}. ${q.q}</div>
+            <div style="font-size:12px;color:var(--tm)">${(q.opts||[]).map((o,oi)=>`<span style="margin-right:8px;${oi===q.ans?'color:var(--g);font-weight:600':''}">${oi===q.ans?'✅':'○'} ${o}</span>`).join('')}</div>
+          </div>
+          <div style="display:flex;gap:5px">
+            <button class="btn btn-g btn-sm" onclick="editQuestion('tests','${key}',${i})">✏️</button>
+            <button class="btn btn-d btn-sm" onclick="deleteQuestion('tests','${key}',${i})">🗑</button>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+// ── GAMES ──
+function renderGames(){
+  const games=D.games||{};
+  document.getElementById('games-list').innerHTML=Object.entries(games).map(([key,g])=>`
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-header">
+        <span class="card-title">${g.name}</span>
+        <button class="btn btn-s btn-sm" onclick="addQuestion('games','${key}')">＋ Завдання</button>
+      </div>
+      <div>${(g.problems||[]).map((p,i)=>`
+        <div style="background:var(--s2);border:1px solid var(--b);border-radius:8px;padding:12px;margin-bottom:8px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start">
+          <div>
+            <div style="font-size:13px;font-weight:600;margin-bottom:4px">${i+1}. ${p.q}</div>
+            <div style="font-size:12px;color:var(--g)">✅ ${p.ans}</div>
+            <div style="font-size:11px;color:var(--tm)">💡 ${p.hint||'—'}</div>
+          </div>
+          <div style="display:flex;gap:5px">
+            <button class="btn btn-g btn-sm" onclick="editQuestion('games','${key}',${i})">✏️</button>
+            <button class="btn btn-d btn-sm" onclick="deleteQuestion('games','${key}',${i})">🗑</button>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+// ── QUESTION EDIT ──
+function editQuestion(section, key, idx){
+  document.getElementById('q-section').value=section;
+  document.getElementById('q-key').value=key;
+  document.getElementById('q-idx').value=idx;
+  const items = section==='tests' ? D.tests[key].questions : D.games[key].problems;
+  const item = items[idx];
+  document.getElementById('qmodal-title').textContent='Редагувати питання';
+  document.getElementById('q-text').value=item.q||'';
+  document.getElementById('q-hint').value=item.hint||'';;
+  document.getElementById('q-ans').value=item.ans!==undefined?item.ans:'';
+  if(section==='tests'){
+    document.getElementById('q-opts-wrap').style.display='block';
+    document.getElementById('q-opts').innerHTML=(item.opts||['','','','']).map((o,i)=>`
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center;margin-bottom:8px">
+        <span style="font-size:12px;color:var(--tm);width:20px">${i}.</span>
+        <input value="${o}" id="opt-${i}" placeholder="Варіант ${i+1}">
+      </div>`).join('');
+  } else {
+    document.getElementById('q-opts-wrap').style.display='none';
+  }
+  document.getElementById('modal-question').classList.add('open');
+}
+
+function addQuestion(section, key){
+  document.getElementById('q-section').value=section;
+  document.getElementById('q-key').value=key;
+  document.getElementById('q-idx').value='-1';
+  document.getElementById('qmodal-title').textContent='Нове питання';
+  document.getElementById('q-text').value='';
+  document.getElementById('q-hint').value='';
+  document.getElementById('q-ans').value='';
+  if(section==='tests'){
+    document.getElementById('q-opts-wrap').style.display='block';
+    document.getElementById('q-opts').innerHTML=[0,1,2,3].map(i=>`
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center;margin-bottom:8px">
+        <span style="font-size:12px;color:var(--tm);width:20px">${i}.</span>
+        <input id="opt-${i}" placeholder="Варіант ${i+1}">
+      </div>`).join('');
+  } else {
+    document.getElementById('q-opts-wrap').style.display='none';
+  }
+  document.getElementById('modal-question').classList.add('open');
+}
+
+function saveQuestion(){
+  const section=document.getElementById('q-section').value;
+  const key=document.getElementById('q-key').value;
+  const idx=parseInt(document.getElementById('q-idx').value);
+  const q=document.getElementById('q-text').value.trim();
+  if(!q){alert('Введіть питання');return;}
+  let item={q};
+  if(section==='tests'){
+    item.opts=[0,1,2,3].map(i=>document.getElementById('opt-'+i).value);
+    item.ans=parseInt(document.getElementById('q-ans').value)||0;
+  } else {
+    item.ans=document.getElementById('q-ans').value;
+    item.hint=document.getElementById('q-hint').value;
+  }
+  const arr = section==='tests' ? D.tests[key].questions : D.games[key].problems;
+  if(idx===-1) arr.push(item);
+  else arr[idx]=item;
+  saveSection(section==='tests'?'tests':'games', section==='tests'?D.tests:D.games);
+  closeMod('modal-question');
+  if(section==='tests') renderTests();
+  else renderGames();
+  showToast('✅ Збережено!');
+}
+
+function deleteQuestion(section, key, idx){
+  if(!confirm('Видалити це питання?')) return;
+  const arr = section==='tests' ? D.tests[key].questions : D.games[key].problems;
+  arr.splice(idx,1);
+  saveSection(section==='tests'?'tests':'games', section==='tests'?D.tests:D.games);
+  if(section==='tests') renderTests();
+  else renderGames();
+  showToast('🗑 Видалено');
 }
 
 // ── UTILS ──
