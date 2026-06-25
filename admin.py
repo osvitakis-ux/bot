@@ -205,7 +205,21 @@ hr{border:none;border-top:1px solid var(--b);margin:18px 0}
       <div class="field ffw"><label>Біографія</label><textarea id="t-bio" placeholder="2-3 речення про підхід та досягнення..."></textarea></div>
       <div class="field"><label>Ціна (від)</label><input id="t-price" placeholder="від 450 грн/год"></div>
       <div class="field"><label>Предмети</label><div id="subj-cb" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:4px"></div></div>
-      <div class="field ffw"><label>Фото — Telegram file_id</label><input id="t-photo" placeholder="AgACAgI... (надішліть фото боту)"><div style="font-size:11px;color:var(--tm);margin-top:5px">💡 Надішліть фото боту — він відповість file_id</div></div>
+      <div class="field ffw">
+        <label>Фото репетитора</label>
+        <div id="photo-upload-area" onclick="document.getElementById('photo-file').click()" style="border:2px dashed var(--b);border-radius:var(--rad);padding:16px;text-align:center;cursor:pointer;transition:.15s;margin-bottom:8px" onmouseover="this.style.borderColor='var(--a)'" onmouseout="this.style.borderColor='var(--b)'">
+          <div id="photo-preview-wrap" style="display:none;margin-bottom:8px">
+            <img id="photo-preview" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--a)">
+          </div>
+          <div id="photo-upload-label" style="color:var(--tm);font-size:13px">
+            <div style="font-size:24px;margin-bottom:4px">📷</div>
+            Клікніть або перетягніть фото
+          </div>
+          <input type="file" id="photo-file" accept="image/*" style="display:none" onchange="handlePhotoUpload(this)">
+        </div>
+        <input type="text" id="t-photo" placeholder="або вставте Telegram file_id вручну" style="font-size:11px">
+        <div style="font-size:11px;color:var(--tm);margin-top:4px">💡 Завантажте фото через панель або вставте file_id від бота</div>
+      </div>
     </div>
     <div class="sl">Розклад вільних годин — клікніть для позначення</div>
     <div class="sched" id="sched-builder"></div>
@@ -365,6 +379,8 @@ function openAddTutor(){
   document.getElementById('modal-title').textContent='Додати репетитора';
   ['t-name','t-exp','t-edu','t-bio','t-price','t-photo'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('t-branch').innerHTML=buildBranchOpts();
+  document.getElementById('photo-preview-wrap').style.display='none';
+  document.getElementById('photo-upload-label').innerHTML='<div style="font-size:24px;margin-bottom:4px">📷</div>Клікніть або перетягніть фото';
   document.getElementById('subj-cb').innerHTML=buildSubjCbs();
   document.getElementById('sched-builder').innerHTML=buildSchedGrid();
   document.getElementById('modal-tutor').classList.add('open');
@@ -379,6 +395,9 @@ function editTutor(id){
   document.getElementById('t-bio').value=t.bio||'';
   document.getElementById('t-price').value=t.price_note||'';
   document.getElementById('t-photo').value=t.photo_id||'';
+  document.getElementById('photo-preview-wrap').style.display='none';
+  document.getElementById('photo-upload-label').innerHTML='<div style="font-size:24px;margin-bottom:4px">📷</div>Клікніть або перетягніть фото';
+  if(t.photo_id) loadPhotoPreview(t.photo_id);
   document.getElementById('t-branch').innerHTML=buildBranchOpts(t.branch);
   document.getElementById('subj-cb').innerHTML=buildSubjCbs(t.subjects||[]);
   document.getElementById('sched-builder').innerHTML=buildSchedGrid(t.schedule||{});
@@ -601,6 +620,60 @@ function deleteQuestion(section, key, idx){
   showToast('🗑 Видалено');
 }
 
+// ── PHOTO UPLOAD ──
+function handlePhotoUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { showToast('❌ Фото більше 5MB'); return; }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const b64 = e.target.result;
+
+    // Show preview immediately
+    document.getElementById('photo-preview').src = b64;
+    document.getElementById('photo-preview-wrap').style.display = 'block';
+    document.getElementById('photo-upload-label').textContent = '✅ ' + file.name;
+
+    // Upload to server
+    showToast('⏳ Завантаження фото...');
+    fetch('/api/upload_photo', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({photo_b64: b64})
+    })
+    .then(r => r.json())
+    .then(r => {
+      if (r.ok) {
+        document.getElementById('t-photo').value = r.photo_id;
+        showToast('✅ Фото завантажено!');
+      } else {
+        showToast('❌ Помилка завантаження');
+      }
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+function loadPhotoPreview(photoId) {
+  if (!photoId) return;
+  if (photoId.startsWith('photo_')) {
+    // Our uploaded photo
+    fetch('/api/photo/' + photoId)
+      .then(r => r.json())
+      .then(r => {
+        if (r.ok) {
+          document.getElementById('photo-preview').src = r.data;
+          document.getElementById('photo-preview-wrap').style.display = 'block';
+          document.getElementById('photo-upload-label').textContent = '✅ Фото завантажено';
+        }
+      });
+  } else if (photoId) {
+    // Telegram file_id — show placeholder
+    document.getElementById('photo-upload-label').textContent = '📎 Telegram file_id: ' + photoId.slice(0, 20) + '...';
+  }
+}
+
 // ── UTILS ──
 function closeMod(id){ document.getElementById(id).classList.remove('open'); }
 function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
@@ -620,6 +693,14 @@ class AdminHandler(BaseHTTPRequestHandler):
         elif path == "/api/data":
             d = load_data()
             self._send(200, "application/json", json.dumps(d, ensure_ascii=False).encode())
+        elif path.startswith("/api/photo/"):
+            photo_id = path.replace("/api/photo/", "")
+            d = load_data()
+            photo_b64 = d.get("photos", {}).get(photo_id, "")
+            if photo_b64:
+                self._send(200, "application/json", json.dumps({"ok": True, "data": photo_b64}).encode())
+            else:
+                self._send(404, "application/json", b'{"ok":false}')
         else:
             self._send(404, "text/plain", b"Not found")
 
@@ -631,6 +712,16 @@ class AdminHandler(BaseHTTPRequestHandler):
         if path == "/api/login":
             ok = body.get("password") == ADMIN_PASSWORD
             self._send(200, "application/json", json.dumps({"ok": ok}).encode())
+
+        elif path == "/api/upload_photo":
+            import base64, uuid
+            photo_b64 = body.get("photo_b64", "")
+            # Store photo as base64 data URL in data.json photos dict
+            d = load_data()
+            photo_id = "photo_" + str(uuid.uuid4())[:8]
+            d.setdefault("photos", {})[photo_id] = photo_b64
+            save_data(d)
+            self._send(200, "application/json", json.dumps({"ok": True, "photo_id": photo_id}).encode())
 
         elif path == "/api/save":
             section = body.get("section")
