@@ -4,7 +4,6 @@ Telegram-бот Репетиторського центру "Константа"
 Потрібен: pip install python-telegram-bot
 """
 
-
 import json
 import os
 import logging
@@ -38,17 +37,19 @@ async def notify(bot, msg: str):
 # ДИНАМІЧНЕ ЗАВАНТАЖЕННЯ ДАНИХ З data.json
 # ═══════════════════════════════════════════════════════════
 DATA_FILE = os.environ.get("DATA_PATH", os.path.join(os.path.dirname(__file__), "data.json"))
+_REPO_DATA = os.path.join(os.path.dirname(__file__), "data.json")
 
 def load_db():
-    """Завантажити актуальні дані з data.json."""
+    """Завантажити актуальні дані з data.json (Volume або репозиторій)."""
     try:
-        if not os.path.exists(DATA_FILE):
-            src_file = os.path.join(os.path.dirname(__file__), "data.json")
-            if os.path.exists(src_file):
+        if DATA_FILE != _REPO_DATA and not os.path.exists(DATA_FILE):
+            if os.path.exists(_REPO_DATA):
                 import shutil
                 os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
-                shutil.copy2(src_file, DATA_FILE)
-        with open(DATA_FILE, "r", encoding="utf-8") as f:
+                shutil.copy2(_REPO_DATA, DATA_FILE)
+                logging.info(f"✅ Перший запуск: дані скопійовано у Volume")
+        target = DATA_FILE if os.path.exists(DATA_FILE) else _REPO_DATA
+        with open(target, "r", encoding="utf-8") as f:
             return json.load(f)
     except Exception as e:
         logging.error(f"Помилка читання data.json: {e}")
