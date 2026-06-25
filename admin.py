@@ -174,12 +174,14 @@ hr{border:none;border-top:1px solid var(--b);margin:18px 0}
   <!-- BRANCHES -->
   <div class="page" id="page-branches">
     <div class="ph"><h2>Філіали</h2><p>Адреси, телефони, режим роботи</p></div>
+    <div style="margin-bottom:16px"><button class="btn btn-p" onclick="openAddBranch()">＋ Додати філіал</button></div>
     <div id="branch-list"></div>
   </div>
 
   <!-- SUBJECTS -->
   <div class="page" id="page-subjects">
-    <div class="ph"><h2>Предмети та ціни</h2><p>Редагуйте ціни — зберігається автоматично</p></div>
+    <div class="ph"><h2>Предмети та ціни</h2><p>Редагуйте ціни та керуйте предметами</p></div>
+    <div style="margin-bottom:16px"><button class="btn btn-p" onclick="openAddSubject()">＋ Додати предмет</button></div>
     <div id="subjects-list"></div>
   </div>
 
@@ -280,6 +282,27 @@ hr{border:none;border-top:1px solid var(--b);margin:18px 0}
     <div style="display:flex;gap:8px;justify-content:flex-end">
       <button class="btn btn-g" onclick="closeMod('modal-branch')">Скасувати</button>
       <button class="btn btn-p" onclick="saveBranch()">💾 Зберегти</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ADD SUBJECT -->
+<div class="mo" id="modal-subject">
+  <div class="modal">
+    <div class="mh"><span class="mt" id="smodal-title">Додати предмет</span><button class="xb" onclick="closeMod('modal-subject')">✕</button></div>
+    <input type="hidden" id="s-key-orig">
+    <div class="fg">
+      <div class="field"><label>Emoji</label><input id="s-emoji" placeholder="📐" style="font-size:20px"></div>
+      <div class="field"><label>Назва</label><input id="s-name" placeholder="Математика"></div>
+      <div class="field ffw"><label>Опис</label><input id="s-desc" placeholder="Алгебра, геометрія, підготовка до НМТ"></div>
+    </div>
+    <div class="sl">Ціни по класах (грн / 60 хв)</div>
+    <div id="s-prices-wrap"></div>
+    <button class="btn btn-g btn-sm" style="margin-bottom:16px" onclick="addPriceRow()">＋ Додати клас</button>
+    <hr>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-g" onclick="closeMod('modal-subject')">Скасувати</button>
+      <button class="btn btn-p" onclick="saveSubject()">💾 Зберегти</button>
     </div>
   </div>
 </div>
@@ -441,12 +464,33 @@ function deleteTutor(id){
 }
 
 // ── BRANCHES ──
+function openAddBranch(){
+  editBid=null;
+  document.getElementById('bmodal-title').textContent='Додати філіал';
+  ['b-name','b-address','b-phone','b-transport','b-schedule','b-map'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('modal-branch').classList.add('open');
+}
+
 function renderBranches(){
   document.getElementById('branch-list').innerHTML=Object.entries(D.branches||{}).map(([id,b])=>`
     <div class="bi">
       <div><div class="bn">📍 ${b.name}</div><div class="bd">🏠 ${b.address}</div><div class="bd">📞 ${b.phone}</div><div class="bd">🕐 ${b.schedule}</div><div class="bd">${b.transport}</div></div>
-      <button class="btn btn-g btn-sm" onclick="editBranch('${id}')">✏️ Редагувати</button>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <button class="btn btn-g btn-sm" onclick="editBranch('${id}')">✏️ Ред.</button>
+        <button class="btn btn-d btn-sm" onclick="deleteBranch('${id}')">🗑</button>
+      </div>
     </div>`).join('');
+}
+
+function deleteBranch(id){
+  const name = D.branches[id]?.name || id;
+  if(!confirm(`Видалити філіал "${name}"?\nУсі репетитори цього філіалу втратять прив'язку!`)) return;
+  delete D.branches[id];
+  saveSection('branches', D.branches);
+  renderBranches();
+  // Update branch select in tutor modal
+  document.getElementById('t-branch').innerHTML=buildBranchOpts();
+  showToast('🗑 Філіал видалено');
 }
 
 function editBranch(id){
@@ -462,19 +506,113 @@ function editBranch(id){
 }
 
 function saveBranch(){
-  D.branches[editBid]={name:document.getElementById('b-name').value,address:document.getElementById('b-address').value,
-    phone:document.getElementById('b-phone').value,transport:document.getElementById('b-transport').value,
-    schedule:document.getElementById('b-schedule').value,map_url:document.getElementById('b-map').value};
+  const name=document.getElementById('b-name').value.trim();
+  if(!name){alert('Введіть назву філіалу');return;}
+  const branch={
+    name,
+    address:document.getElementById('b-address').value,
+    phone:document.getElementById('b-phone').value,
+    transport:document.getElementById('b-transport').value,
+    schedule:document.getElementById('b-schedule').value,
+    map_url:document.getElementById('b-map').value
+  };
+  if(editBid) D.branches[editBid]=branch;
+  else {
+    const key='branch_'+Date.now();
+    D.branches[key]=branch;
+  }
   saveSection('branches', D.branches);
   closeMod('modal-branch');
   renderBranches();
+  showToast('✅ Філіал збережено!');
 }
 
 // ── SUBJECTS ──
+let priceRowCount = 0;
+
+function openAddSubject(){
+  document.getElementById('smodal-title').textContent='Додати предмет';
+  document.getElementById('s-key-orig').value='';
+  document.getElementById('s-emoji').value='';
+  document.getElementById('s-name').value='';
+  document.getElementById('s-desc').value='';
+  priceRowCount=0;
+  document.getElementById('s-prices-wrap').innerHTML='';
+  addPriceRow();
+  document.getElementById('modal-subject').classList.add('open');
+}
+
+function editSubject(key){
+  const s=D.subjects[key];
+  document.getElementById('smodal-title').textContent='Редагувати: '+s.name;
+  document.getElementById('s-key-orig').value=key;
+  document.getElementById('s-emoji').value=s.emoji||'';;
+  document.getElementById('s-name').value=s.name||'';;
+  document.getElementById('s-desc').value=s.desc||'';;
+  priceRowCount=0;
+  document.getElementById('s-prices-wrap').innerHTML='';
+  Object.entries(s.prices||{}).forEach(([grade,p])=>addPriceRow(grade,p['індив']||0,p['група']||0));
+  document.getElementById('modal-subject').classList.add('open');
+}
+
+function addPriceRow(grade='', indiv=0, group=0){
+  const i=priceRowCount++;
+  const wrap=document.getElementById('s-prices-wrap');
+  const div=document.createElement('div');
+  div.id='price-row-'+i;
+  div.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:end;margin-bottom:10px';
+  div.innerHTML=`
+    <div><label>Клас</label><input id="pg-${i}" value="${grade}" placeholder="1–4 клас"></div>
+    <div><label>Індивід. (грн)</label><input type="number" id="pi-${i}" value="${indiv}"></div>
+    <div><label>Група (грн)</label><input type="number" id="pp-${i}" value="${group}"></div>
+    <button class="btn btn-d btn-sm" style="margin-bottom:1px" onclick="document.getElementById('price-row-${i}').remove()">🗑</button>
+  `;
+  wrap.appendChild(div);
+}
+
+function saveSubject(){
+  const name=document.getElementById('s-name').value.trim();
+  if(!name){alert('Введіть назву предмету');return;}
+  const prices={};
+  document.querySelectorAll('[id^="price-row-"]').forEach(row=>{
+    const i=row.id.replace('price-row-','');
+    const grade=document.getElementById('pg-'+i)?.value.trim();
+    const indiv=parseInt(document.getElementById('pi-'+i)?.value)||0;
+    const group=parseInt(document.getElementById('pp-'+i)?.value)||0;
+    if(grade) prices[grade]={'індив':indiv,'група':group};
+  });
+  const subj={emoji:document.getElementById('s-emoji').value||'📚',name,desc:document.getElementById('s-desc').value,prices};
+  const origKey=document.getElementById('s-key-orig').value;
+  if(origKey) D.subjects[origKey]=subj;
+  else {
+    const key=name.toLowerCase().replace(/[^a-zа-яіїє]/gi,'_').slice(0,8)+'_'+Date.now().toString().slice(-4);
+    D.subjects[key]=subj;
+  }
+  saveSection('subjects',D.subjects);
+  closeMod('modal-subject');
+  renderSubjects();
+  showToast('✅ Предмет збережено!');
+}
+
+function deleteSubject(key){
+  const name=D.subjects[key]?.name||key;
+  if(!confirm(`Видалити предмет "${name}"?`)) return;
+  delete D.subjects[key];
+  saveSection('subjects',D.subjects);
+  renderSubjects();
+  showToast('🗑 Предмет видалено');
+}
+
 function renderSubjects(){
   document.getElementById('subjects-list').innerHTML=Object.entries(D.subjects||{}).map(([key,s])=>`
     <div class="card" style="margin-bottom:12px">
-      <div class="card-header"><span class="card-title">${s.emoji} ${s.name}</span></div>
+      <div class="card-header">
+        <span class="card-title">${s.emoji} ${s.name}</span>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-g btn-sm" onclick="editSubject('${key}')">✏️ Ред.</button>
+          <button class="btn btn-d btn-sm" onclick="deleteSubject('${key}')">🗑 Видалити</button>
+        </div>
+      </div>
       <div class="fg" style="margin-bottom:10px">
         <div class="field ffw"><label>Опис</label><input value="${s.desc||''}" onchange="D.subjects['${key}'].desc=this.value" onblur="saveSection('subjects',D.subjects)"></div>
       </div>
