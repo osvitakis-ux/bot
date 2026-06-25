@@ -55,6 +55,8 @@ def load_db():
 def get_tutors():   return load_db().get("tutors", {})
 def get_branches(): return load_db().get("branches", {})
 def get_subjects(): return load_db().get("subjects", {})
+def get_tests():    return load_db().get("tests", {})
+def get_games():    return load_db().get("games", {})
 
 def save_feedback(user, text, rating):
     """Зберегти відгук у data.json."""
@@ -608,7 +610,7 @@ async def button_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
                     f"👩‍🏫 Репетитори: {s['name']}", callback_data=f"tutors_subj_{key}"
                 )]]
             test_btn = []
-            if key in TESTS:
+            if key in get_tests():
                 test_btn = [[InlineKeyboardButton(
                     f"📝 Пройти тест: {s['name']}", callback_data=f"test_{key}"
                 )]]
@@ -779,9 +781,9 @@ async def button_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     elif data.startswith("game_"):
         gtype = data[len("game_"):]
         if gtype == "word":
-            p = random.choice(WORD_PROBLEMS)
-        elif gtype in LOGIC_GAMES:
-            p = random.choice(LOGIC_GAMES[gtype]["problems"])
+            p = random.choice(get_games().get("word", {}).get("problems", [{}]))
+        elif gtype in get_games():
+            p = random.choice(get_games()[gtype]["problems"])
         else:
             p = None
 
@@ -811,7 +813,7 @@ async def button_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
                 f"{get_subjects().get(k, {}).get('emoji','📝')} {t['name']}",
                 callback_data=f"test_{k}"
             )]
-            for k, t in TESTS.items()
+            for k, t in get_tests().items()
         ] + [[InlineKeyboardButton("🏠 Меню", callback_data="main_menu")]]
         await q.edit_message_text(
             "📝 *Міні-тести*\nПо 5 питань — оберіть предмет:",
@@ -821,11 +823,11 @@ async def button_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
     elif data.startswith("test_"):
         key = data[len("test_"):]
-        if key in TESTS:
+        if key in get_tests():
             ctx.user_data["test"] = {
                 "key": key,
-                "name": TESTS[key]["name"],
-                "questions": TESTS[key]["questions"].copy(),
+                "name": get_tests()[key]["name"],
+                "questions": get_tests()[key]["questions"].copy(),
                 "current": 0,
                 "score": 0,
             }
