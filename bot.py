@@ -18,9 +18,9 @@ from telegram.ext import (
 # ═══════════════════════════════════════════════════════════
 # НАЛАШТУВАННЯ — змінюйте тільки цей блок
 # ═══════════════════════════════════════════════════════════
-import os
-BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
-ADMIN_CHAT_ID = int(os.environ.get("ADMIN_CHAT_ID", 0))
+BOT_TOKEN = "ВАШ_ТОКЕН_ТУТ"
+ADMIN_CHAT_ID = 123456789  # Дізнатися у @userinfobot
+
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO
@@ -723,10 +723,30 @@ async def button_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             f"👩‍🏫 {t['name']}\n"
             f"📚 {', '.join(subject_name(s) for s in t['subjects'])}"
         )
-        if t.get("photo_id"):
-            # є фото — надсилаємо нове повідомлення з фото
+        photo_id = t.get("photo_id", "")
+        if photo_id and photo_id.startswith("photo_"):
+            # Фото завантажено через адмін-панель — беремо з data.json
+            d = load_db()
+            photo_b64 = d.get("photos", {}).get(photo_id, "")
+            if photo_b64:
+                import base64, io
+                # Decode base64 data URL
+                if "," in photo_b64:
+                    photo_b64 = photo_b64.split(",", 1)[1]
+                photo_bytes = base64.b64decode(photo_b64)
+                await q.message.reply_photo(
+                    photo=io.BytesIO(photo_bytes),
+                    caption=caption,
+                    parse_mode="Markdown",
+                    reply_markup=kb,
+                )
+                await q.message.delete()
+            else:
+                await q.edit_message_text(caption, parse_mode="Markdown", reply_markup=kb)
+        elif photo_id:
+            # Telegram file_id — надсилаємо напряму
             await q.message.reply_photo(
-                photo=t["photo_id"],
+                photo=photo_id,
                 caption=caption,
                 parse_mode="Markdown",
                 reply_markup=kb,
