@@ -11,6 +11,7 @@ from urllib.parse import urlparse, parse_qs
 import logging
 
 DATA_FILE = os.path.join(os.path.dirname(__file__), "data.json")
+from config import BOT_TOKEN, ADMIN_CHAT_ID
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "konstanta2024")
 ADMIN_PORT = int(os.environ.get("PORT", 8080))
 
