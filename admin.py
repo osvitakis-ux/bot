@@ -149,7 +149,7 @@ hr{border:none;border-top:1px solid var(--b);margin:18px 0}
     <div class="ph"><h2>Дашборд</h2><p>Загальний огляд</p></div>
     <div class="stats">
       <div class="sc"><div class="sl2">Репетиторів</div><div class="sv" id="s-tutors" style="color:var(--a)">—</div><div class="ss">У базі</div></div>
-      <div class="sc"><div class="sl2">Філіалів</div><div class="sv" id="s-branches" style="color:var(--g)">3</div><div class="ss">Активних</div></div>
+      <div class="sc"><div class="sl2">Філіалів</div><div class="sv" id="s-branches" style="color:var(--g)">—</div><div class="ss">Активних</div></div>
       <div class="sc"><div class="sl2">Предметів</div><div class="sv" id="s-subjects" style="color:var(--am)">—</div><div class="ss">У каталозі</div></div>
       <div class="sc"><div class="sl2">Відгуків</div><div class="sv" id="s-feedbacks" style="color:var(--g)">—</div><div class="ss">Від клієнтів</div></div>
     </div>
@@ -351,6 +351,7 @@ function saveSection(section, payload){
 
 function updateStats(){
   document.getElementById('s-tutors').textContent=Object.keys(D.tutors||{}).length;
+  document.getElementById('s-branches').textContent=Object.keys(D.branches||{}).length;
   document.getElementById('s-subjects').textContent=Object.keys(D.subjects||{}).length;
   document.getElementById('s-feedbacks').textContent=(D.feedbacks||[]).length;
 }
