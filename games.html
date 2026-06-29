@@ -207,7 +207,15 @@ canvas{display:block;border:2px solid var(--b);border-radius:10px;background:#11
     <div class="score-box">★ <span id="g2-sc">0</span></div>
   </div>
   <div id="g2048-board"></div>
-  <div class="swipe-hint">Свайпайте або використовуйте стрілки клавіатури</div>
+  <div class="swipe-hint">Свайпайте або натискайте кнопки нижче</div>
+  <div style="display:grid;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(2,52px);gap:5px;margin-top:10px">
+    <div class="de"></div>
+    <div class="db" ontouchstart="event.preventDefault();move2048('up')" onclick="move2048('up')">▲</div>
+    <div class="de"></div>
+    <div class="db" ontouchstart="event.preventDefault();move2048('left')" onclick="move2048('left')">◀</div>
+    <div class="db" ontouchstart="event.preventDefault();move2048('down')" onclick="move2048('down')">▼</div>
+    <div class="db" ontouchstart="event.preventDefault();move2048('right')" onclick="move2048('right')">▶</div>
+  </div>
   <div class="overlay" id="g2048-ov" style="display:none;position:fixed;border-radius:0">
     <h2 id="g2-title">Гра закінчена!</h2>
     <div class="fs" id="g2-fin">0</div><div class="fl">очок</div>
@@ -559,9 +567,9 @@ function initMemory(){
   document.getElementById('mem-mv').textContent=0;
   document.getElementById('mem-ov').style.display='none';
   // grid columns based on level
-  const cols=level<=8?4:level<=12?4:level<=16?4:level<=20?5:level<=24?6:8;
-  const cardH=level<=8?65:level<=16?55:level<=20?50:level<=24?46:40;
-  const fs=level<=8?28:level<=16?22:level<=20?20:18;
+  const cols=level<=8?4:level<=12?4:level<=16?4:level<=20?5:6;
+  const cardH=level<=8?65:level<=16?55:level<=20?50:44;
+  const fs=level<=8?28:level<=16?22:level<=20?20:17;
   document.getElementById('mem-board').style.gridTemplateColumns=`repeat(${cols},1fr)`;
   stopAll();
   addTimer(setInterval(()=>{ memSec++; document.getElementById('mem-t').textContent=memSec; },1000));
