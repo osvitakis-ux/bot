@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Ігри — Константа</title>
+<style>
+:root{--bg:#0f1117;--s:#1a1d27;--s2:#222638;--b:#2d3148;--a:#5b6ef5;--g:#22c55e;--r:#ef4444;--am:#f59e0b;--t:#e8eaf0;--tm:#8b90a7}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--t);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px}
+h1{font-size:20px;font-weight:700;margin-bottom:6px;text-align:center}
+.sub{font-size:13px;color:var(--tm);text-align:center;margin-bottom:24px}
+.menu{display:flex;flex-direction:column;gap:12px;width:100%;max-width:320px}
+.game-btn{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:18px 20px;cursor:pointer;display:flex;align-items:center;gap:14px;transition:.15s;text-align:left}
+.game-btn:hover,.game-btn:active{border-color:var(--a);background:var(--s2)}
+.game-btn .icon{font-size:32px;flex-shrink:0}
+.game-btn .info h3{font-size:15px;font-weight:600;margin-bottom:3px}
+.game-btn .info p{font-size:12px;color:var(--tm)}
+
+/* ── SCREENS ── */
+.screen{display:none;flex-direction:column;align-items:center;width:100%;max-width:400px}
+.screen.active{display:flex}
+
+.topbar{display:flex;align-items:center;gap:10px;width:100%;margin-bottom:16px}
+.back-btn{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:7px 12px;cursor:pointer;font-size:13px;color:var(--tm)}
+.back-btn:hover{color:var(--t)}
+.score-box{margin-left:auto;background:var(--s);border:1px solid var(--b);border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600}
+
+/* ── SNAKE ── */
+#snake-canvas{border:2px solid var(--b);border-radius:10px;background:#111318;display:block}
+.snake-controls{display:grid;grid-template-columns:repeat(3,56px);grid-template-rows:repeat(2,56px);gap:6px;margin-top:14px}
+.ctrl-btn{background:var(--s);border:1px solid var(--b);border-radius:10px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;user-select:none;transition:.1s;-webkit-user-select:none}
+.ctrl-btn:active{background:var(--a);border-color:var(--a)}
+.ctrl-empty{background:transparent;border:none}
+
+/* ── MAZE ── */
+#maze-canvas{border:2px solid var(--b);border-radius:10px;background:#111318;display:block}
+.maze-controls{display:grid;grid-template-columns:repeat(3,56px);grid-template-rows:repeat(2,56px);gap:6px;margin-top:14px}
+
+/* ── SHOOT ── */
+#shoot-canvas{border:2px solid var(--b);border-radius:10px;background:#111318;display:block}
+.shoot-controls{display:flex;gap:12px;margin-top:14px}
+.shoot-btn{background:var(--s);border:1px solid var(--b);border-radius:10px;padding:14px 28px;font-size:18px;cursor:pointer;user-select:none;transition:.1s;-webkit-user-select:none}
+.shoot-btn:active{background:var(--a)}
+
+/* ── OVERLAY ── */
+.overlay{position:absolute;inset:0;background:rgba(0,0,0,.75);display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;gap:14px}
+.overlay h2{font-size:22px;font-weight:700}
+.overlay .final-score{font-size:36px;font-weight:700;color:var(--am)}
+.overlay .restart-btn{background:var(--a);border:none;border-radius:10px;padding:12px 28px;color:#fff;font-size:15px;font-weight:700;cursor:pointer}
+.game-wrap{position:relative;display:inline-block}
+</style>
+</head>
+<body>
+
+<!-- MENU -->
+<div class="screen active" id="screen-menu">
+  <h1>🎮 Ігри</h1>
+  <p class="sub">Репетиторський центр «Константа»</p>
+  <div class="menu">
+    <div class="game-btn" onclick="startGame('snake')">
+      <span class="icon">🐍</span>
+      <div class="info"><h3>Змійка</h3><p>Збирай їжу, не врізайся в стіни</p></div>
+    </div>
+    <div class="game-btn" onclick="startGame('maze')">
+      <span class="icon">🌀</span>
+      <div class="info"><h3>Лабіринт</h3><p>Знайди вихід якомога швидше</p></div>
+    </div>
+    <div class="game-btn" onclick="startGame('shoot')">
+      <span class="icon">🎯</span>
+      <div class="info"><h3>Влучи в ціль</h3><p>Збивай мішені на швидкість</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- SNAKE -->
+<div class="screen" id="screen-snake">
+  <div class="topbar">
+    <button class="back-btn" onclick="goMenu()">◀ Назад</button>
+    <span style="font-size:14px;font-weight:600">🐍 Змійка</span>
+    <div class="score-box">🍎 <span id="snake-score">0</span></div>
+  </div>
+  <div class="game-wrap">
+    <canvas id="snake-canvas" width="300" height="300"></canvas>
+    <div class="overlay" id="snake-overlay" style="display:none">
+      <h2>Гра закінчена!</h2>
+      <div class="final-score" id="snake-final">0</div>
+      <div style="font-size:13px;color:var(--tm)">очок</div>
+      <button class="restart-btn" onclick="initSnake()">🔄 Ще раз</button>
+    </div>
+  </div>
+  <div class="snake-controls">
+    <div class="ctrl-empty"></div>
+    <div class="ctrl-btn" ontouchstart="snakeDir(0,-1)" onclick="snakeDir(0,-1)">▲</div>
+    <div class="ctrl-empty"></div>
+    <div class="ctrl-btn" ontouchstart="snakeDir(-1,0)" onclick="snakeDir(-1,0)">◀</div>
+    <div class="ctrl-btn" ontouchstart="snakeDir(0,1)" onclick="snakeDir(0,1)">▼</div>
+    <div class="ctrl-btn" ontouchstart="snakeDir(1,0)" onclick="snakeDir(1,0)">▶</div>
+  </div>
+</div>
+
+<!-- MAZE -->
+<div class="screen" id="screen-maze">
+  <div class="topbar">
+    <button class="back-btn" onclick="goMenu()">◀ Назад</button>
+    <span style="font-size:14px;font-weight:600">🌀 Лабіринт</span>
+    <div class="score-box">⏱ <span id="maze-time">0</span>с</div>
+  </div>
+  <div class="game-wrap">
+    <canvas id="maze-canvas" width="300" height="300"></canvas>
+    <div class="overlay" id="maze-overlay" style="display:none">
+      <h2>🎉 Вихід знайдено!</h2>
+      <div class="final-score" id="maze-final">0</div>
+      <div style="font-size:13px;color:var(--tm)">секунд</div>
+      <button class="restart-btn" onclick="initMaze()">🔄 Новий лабіринт</button>
+    </div>
+  </div>
+  <div class="maze-controls">
+    <div class="ctrl-empty"></div>
+    <div class="ctrl-btn" ontouchstart="mazeMove(0,-1)" onclick="mazeMove(0,-1)">▲</div>
+    <div class="ctrl-empty"></div>
+    <div class="ctrl-btn" ontouchstart="mazeMove(-1,0)" onclick="mazeMove(-1,0)">◀</div>
+    <div class="ctrl-btn" ontouchstart="mazeMove(0,1)" onclick="mazeMove(0,1)">▼</div>
+    <div class="ctrl-btn" ontouchstart="mazeMove(1,0)" onclick="mazeMove(1,0)">▶</div>
+  </div>
+</div>
+
+<!-- SHOOT -->
+<div class="screen" id="screen-shoot">
+  <div class="topbar">
+    <button class="back-btn" onclick="goMenu()">◀ Назад</button>
+    <span style="font-size:14px;font-weight:600">🎯 Влучи в ціль</span>
+    <div class="score-box">🎯 <span id="shoot-score">0</span> | ⏱ <span id="shoot-time">30</span>с</div>
+  </div>
+  <div class="game-wrap">
+    <canvas id="shoot-canvas" width="300" height="300"></canvas>
+    <div class="overlay" id="shoot-overlay" style="display:none">
+      <h2>Час вийшов!</h2>
+      <div class="final-score" id="shoot-final">0</div>
+      <div style="font-size:13px;color:var(--tm)">влучань</div>
+      <button class="restart-btn" onclick="initShoot()">🔄 Ще раз</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════
+let activeGame = null;
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+}
+
+function startGame(name){
+  activeGame = name;
+  showScreen(name);
+  if(name==='snake') initSnake();
+  if(name==='maze')  initMaze();
+  if(name==='shoot') initShoot();
+}
+
+function goMenu(){
+  stopAll();
+  showScreen('menu');
+}
+
+function stopAll(){
+  clearInterval(snakeTimer);
+  clearInterval(mazeTimer);
+  clearInterval(shootTimer);
+}
+
+// ══════════════════════════════════════
+// 🐍 SNAKE
+// ══════════════════════════════════════
+const SC = document.getElementById('snake-canvas');
+const SX = SC.getContext('2d');
+const CELL = 15, COLS = 20, ROWS = 20;
+let snake, sDir, sNextDir, sFood, sScore, snakeTimer, sRunning;
+
+function initSnake(){
+  snake = [{x:10,y:10},{x:9,y:10},{x:8,y:10}];
+  sDir = {x:1,y:0};
+  sNextDir = {x:1,y:0};
+  sFood = randomFood();
+  sScore = 0;
+  sRunning = true;
+  document.getElementById('snake-score').textContent = 0;
+  document.getElementById('snake-overlay').style.display = 'none';
+  clearInterval(snakeTimer);
+  snakeTimer = setInterval(snakeStep, 150);
+}
+
+function randomFood(){
+  let f;
+  do { f={x:Math.floor(Math.random()*COLS),y:Math.floor(Math.random()*ROWS)}; }
+  while(snake && snake.some(s=>s.x===f.x&&s.y===f.y));
+  return f;
+}
+
+function snakeDir(x,y){
+  if(!sRunning) return;
+  if(x!==0&&sDir.x!==0) return;
+  if(y!==0&&sDir.y!==0) return;
+  sNextDir={x,y};
+}
+
+function snakeStep(){
+  sDir = sNextDir;
+  const head={x:snake[0].x+sDir.x, y:snake[0].y+sDir.y};
+  if(head.x<0||head.x>=COLS||head.y<0||head.y>=ROWS||snake.some(s=>s.x===head.x&&s.y===head.y)){
+    sRunning=false;
+    clearInterval(snakeTimer);
+    document.getElementById('snake-final').textContent=sScore;
+    document.getElementById('snake-overlay').style.display='flex';
+    return;
+  }
+  snake.unshift(head);
+  if(head.x===sFood.x&&head.y===sFood.y){
+    sScore++;
+    document.getElementById('snake-score').textContent=sScore;
+    sFood=randomFood();
+  } else snake.pop();
+  drawSnake();
+}
+
+function drawSnake(){
+  SX.fillStyle='#111318'; SX.fillRect(0,0,300,300);
+  // grid
+  SX.strokeStyle='#1a1d27'; SX.lineWidth=0.5;
+  for(let i=0;i<=COLS;i++){SX.beginPath();SX.moveTo(i*CELL,0);SX.lineTo(i*CELL,300);SX.stroke();}
+  for(let i=0;i<=ROWS;i++){SX.beginPath();SX.moveTo(0,i*CELL);SX.lineTo(300,i*CELL);SX.stroke();}
+  // food
+  SX.fillStyle='#ef4444';
+  SX.beginPath();SX.arc(sFood.x*CELL+CELL/2,sFood.y*CELL+CELL/2,CELL/2-1,0,Math.PI*2);SX.fill();
+  // snake
+  snake.forEach((s,i)=>{
+    SX.fillStyle = i===0?'#22c55e':'#16a34a';
+    SX.beginPath();SX.roundRect(s.x*CELL+1,s.y*CELL+1,CELL-2,CELL-2,3);SX.fill();
+  });
+}
+
+// keyboard
+document.addEventListener('keydown',e=>{
+  if(activeGame!=='snake') return;
+  if(e.key==='ArrowUp')    snakeDir(0,-1);
+  if(e.key==='ArrowDown')  snakeDir(0,1);
+  if(e.key==='ArrowLeft')  snakeDir(-1,0);
+  if(e.key==='ArrowRight') snakeDir(1,0);
+});
+
+// ══════════════════════════════════════
+// 🌀 MAZE
+// ══════════════════════════════════════
+const MC = document.getElementById('maze-canvas');
+const MX = MC.getContext('2d');
+const MSIZE = 15, MCOLS = 19, MROWS = 19;
+let maze, player, mazeTimer, mazeSeconds, mazeDone;
+
+function initMaze(){
+  mazeDone = false;
+  mazeSeconds = 0;
+  document.getElementById('maze-time').textContent = 0;
+  document.getElementById('maze-overlay').style.display = 'none';
+  maze = generateMaze(MCOLS, MROWS);
+  player = {x:1, y:1};
+  clearInterval(mazeTimer);
+  mazeTimer = setInterval(()=>{
+    if(!mazeDone){ mazeSeconds++; document.getElementById('maze-time').textContent=mazeSeconds; }
+  }, 1000);
+  drawMaze();
+}
+
+function generateMaze(w, h){
+  const grid = Array.from({length:h},()=>Array(w).fill(1));
+  function carve(x,y){
+    const dirs=[[0,-2],[0,2],[-2,0],[2,0]].sort(()=>Math.random()-.5);
+    for(const[dx,dy] of dirs){
+      const nx=x+dx, ny=y+dy;
+      if(nx>0&&nx<w-1&&ny>0&&ny<h-1&&grid[ny][nx]===1){
+        grid[y+dy/2][x+dx/2]=0;
+        grid[ny][nx]=0;
+        carve(nx,ny);
+      }
+    }
+  }
+  grid[1][1]=0;
+  carve(1,1);
+  grid[h-2][w-2]=0; // exit
+  return grid;
+}
+
+function mazeMove(dx,dy){
+  if(mazeDone) return;
+  const nx=player.x+dx, ny=player.y+dy;
+  if(nx<0||nx>=MCOLS||ny<0||ny>=MROWS) return;
+  if(maze[ny][nx]===1) return;
+  player={x:nx,y:ny};
+  drawMaze();
+  if(nx===MCOLS-2&&ny===MROWS-2){
+    mazeDone=true;
+    clearInterval(mazeTimer);
+    document.getElementById('maze-final').textContent=mazeSeconds;
+    setTimeout(()=>document.getElementById('maze-overlay').style.display='flex',300);
+  }
+}
+
+function drawMaze(){
+  const cs = 300/MCOLS;
+  MX.fillStyle='#111318'; MX.fillRect(0,0,300,300);
+  for(let y=0;y<MROWS;y++){
+    for(let x=0;x<MCOLS;x++){
+      if(maze[y][x]===1){
+        MX.fillStyle='#2d3148';
+        MX.fillRect(x*cs,y*cs,cs,cs);
+      }
+    }
+  }
+  // exit
+  MX.fillStyle='#f59e0b';
+  MX.fillRect((MCOLS-2)*cs+2,(MROWS-2)*cs+2,cs-4,cs-4);
+  MX.fillStyle='#111';MX.font=`${cs*.7}px sans-serif`;MX.textAlign='center';MX.textBaseline='middle';
+  MX.fillText('🚪',(MCOLS-2)*cs+cs/2,(MROWS-2)*cs+cs/2);
+  // player
+  MX.fillStyle='#5b6ef5';
+  MX.beginPath();MX.arc(player.x*cs+cs/2,player.y*cs+cs/2,cs/2-1,0,Math.PI*2);MX.fill();
+  MX.fillStyle='#fff';MX.font=`${cs*.65}px sans-serif`;
+  MX.fillText('😊',player.x*cs+cs/2,player.y*cs+cs/2+1);
+}
+
+document.addEventListener('keydown',e=>{
+  if(activeGame!=='maze') return;
+  if(e.key==='ArrowUp')    mazeMove(0,-1);
+  if(e.key==='ArrowDown')  mazeMove(0,1);
+  if(e.key==='ArrowLeft')  mazeMove(-1,0);
+  if(e.key==='ArrowRight') mazeMove(1,0);
+  e.preventDefault();
+});
+
+// ══════════════════════════════════════
+// 🎯 ВЛУЧИ В ЦІЛЬ
+// ══════════════════════════════════════
+const TC = document.getElementById('shoot-canvas');
+const TX = TC.getContext('2d');
+let targets, shootScore, shootTimeLeft, shootTimer, shootRunning;
+
+function initShoot(){
+  targets = [];
+  shootScore = 0;
+  shootTimeLeft = 30;
+  shootRunning = true;
+  document.getElementById('shoot-score').textContent = 0;
+  document.getElementById('shoot-time').textContent = 30;
+  document.getElementById('shoot-overlay').style.display = 'none';
+  clearInterval(shootTimer);
+  spawnTarget();
+  shootTimer = setInterval(()=>{
+    if(!shootRunning) return;
+    shootTimeLeft--;
+    document.getElementById('shoot-time').textContent = shootTimeLeft;
+    // move targets
+    targets.forEach(t=>{
+      t.x += t.vx; t.y += t.vy;
+      if(t.x<t.r||t.x>300-t.r) t.vx*=-1;
+      if(t.y<t.r||t.y>300-t.r) t.vy*=-1;
+      t.life--;
+    });
+    targets = targets.filter(t=>t.life>0);
+    if(targets.length===0) spawnTarget();
+    drawShoot();
+    if(shootTimeLeft<=0){
+      shootRunning=false;
+      clearInterval(shootTimer);
+      document.getElementById('shoot-final').textContent=shootScore;
+      document.getElementById('shoot-overlay').style.display='flex';
+    }
+  },1000);
+  // fast redraw
+  function loop(){ if(activeGame==='shoot'&&shootRunning){ drawShoot(); requestAnimationFrame(loop); } }
+  requestAnimationFrame(loop);
+}
+
+function spawnTarget(){
+  const count = Math.min(1+Math.floor(shootScore/5), 4);
+  for(let i=targets.length;i<count;i++){
+    const r = 20+Math.random()*20;
+    targets.push({
+      x: r+Math.random()*(300-2*r), y: r+Math.random()*(300-2*r),
+      r, vx:(Math.random()-.5)*3, vy:(Math.random()-.5)*3,
+      life: 8+Math.floor(Math.random()*5),
+      color: ['#ef4444','#f59e0b','#22c55e','#5b6ef5'][Math.floor(Math.random()*4)]
+    });
+  }
+}
+
+function drawShoot(){
+  TX.fillStyle='#111318'; TX.fillRect(0,0,300,300);
+  targets.forEach(t=>{
+    // shadow
+    TX.fillStyle='rgba(0,0,0,.3)';
+    TX.beginPath();TX.ellipse(t.x+3,t.y+3,t.r,t.r*.3,0,0,Math.PI*2);TX.fill();
+    // target rings
+    [t.r, t.r*.65, t.r*.35].forEach((r,i)=>{
+      TX.fillStyle=i%2===0?t.color:'#fff';
+      TX.beginPath();TX.arc(t.x,t.y,r,0,Math.PI*2);TX.fill();
+    });
+    // center dot
+    TX.fillStyle='#111';
+    TX.beginPath();TX.arc(t.x,t.y,t.r*.12,0,Math.PI*2);TX.fill();
+    // life bar
+    TX.fillStyle='#1a1d27';TX.fillRect(t.x-t.r,t.y-t.r-8,t.r*2,5);
+    TX.fillStyle=t.color;TX.fillRect(t.x-t.r,t.y-t.r-8,t.r*2*(t.life/13),5);
+  });
+}
+
+TC.addEventListener('click',e=>{
+  if(!shootRunning) return;
+  const rect=TC.getBoundingClientRect();
+  const mx=(e.clientX-rect.left)*(300/rect.width);
+  const my=(e.clientY-rect.top)*(300/rect.height);
+  let hit=false;
+  targets=targets.filter(t=>{
+    const d=Math.hypot(mx-t.x,my-t.y);
+    if(d<t.r){ hit=true; shootScore++; document.getElementById('shoot-score').textContent=shootScore; return false; }
+    return true;
+  });
+  if(hit&&targets.length===0) spawnTarget();
+});
+
+TC.addEventListener('touchstart',e=>{
+  e.preventDefault();
+  const touch=e.touches[0];
+  TC.dispatchEvent(new MouseEvent('click',{clientX:touch.clientX,clientY:touch.clientY}));
+},{passive:false});
+
+// init first draw
+drawSnake();
+</script>
+</body>
+</html>
