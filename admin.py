@@ -840,9 +840,13 @@ class AdminHandler(BaseHTTPRequestHandler):
         if path == "/" or path == "/admin":
             self._send(200, "text/html", ADMIN_HTML.encode("utf-8"))
         elif path == "/games":
-            games_file = os.path.join(os.path.dirname(__file__), "games.html")
-            with open(games_file, "rb") as f:
-                self._send(200, "text/html", f.read())
+            # Шукаємо games.html поруч з admin.py
+            games_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "games.html")
+            try:
+                with open(games_file, "rb") as f:
+                    self._send(200, "text/html", f.read())
+            except FileNotFoundError:
+                self._send(404, "text/plain", f"games.html not found at {games_file}".encode())
 
         elif path == "/api/data":
             d = load_data()
