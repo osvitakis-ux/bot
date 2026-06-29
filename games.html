@@ -176,7 +176,7 @@ canvas{display:block;border:2px solid var(--b);border-radius:10px;background:#11
   </div>
   <div id="tet-wrap">
     <div class="game-wrap">
-      <canvas id="tet-c" width="180" height="360"></canvas>
+      <canvas id="tet-c" width="160" height="320"></canvas>
       <div class="overlay" id="tet-ov" style="display:none">
         <h2>Гра закінчена!</h2>
         <div class="fs" id="tet-fin">0</div><div class="fl">очок</div>
@@ -190,11 +190,11 @@ canvas{display:block;border:2px solid var(--b);border-radius:10px;background:#11
     </div>
   </div>
   <div class="dpad" style="margin-top:12px">
-    <div class="db" ontouchstart="tetMove(-1)" onclick="tetMove(-1)">◀</div>
-    <div class="db" ontouchstart="tetRotate()" onclick="tetRotate()">🔄</div>
-    <div class="db" ontouchstart="tetMove(1)" onclick="tetMove(1)">▶</div>
+    <div class="db" ontouchstart="event.preventDefault();tetMoveOnce(-1)">◀</div>
+    <div class="db" ontouchstart="event.preventDefault();tetRotate()">🔄</div>
+    <div class="db" ontouchstart="event.preventDefault();tetMoveOnce(1)">▶</div>
     <div class="de"></div>
-    <div class="db" ontouchstart="tetDrop()" onclick="tetDrop()" style="font-size:14px">⬇ Впасти</div>
+    <div class="db" ontouchstart="event.preventDefault();tetDrop()" style="font-size:14px">⬇ Впасти</div>
     <div class="de"></div>
   </div>
 </div>
@@ -222,7 +222,19 @@ canvas{display:block;border:2px solid var(--b);border-radius:10px;background:#11
     <span class="game-title">🃏 Пам'ять</span>
     <div class="score-box">⏱<span id="mem-t">0</span>с | 🃏<span id="mem-mv">0</span></div>
   </div>
-  <div id="mem-board" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:300px"></div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:12px;color:var(--tm);width:100%;max-width:300px">
+    <span>Рівень:</span>
+    <select id="mem-level" onchange="initMemory()" style="flex:1;background:var(--s2);border:1px solid var(--b);border-radius:8px;padding:5px 8px;color:var(--t);font-size:12px;outline:none">
+      <option value="4">Легко — 4 картки (2 пари)</option>
+      <option value="8" selected>Нормально — 8 карток (4 пари)</option>
+      <option value="12">Середньо — 12 карток (6 пар)</option>
+      <option value="16">Складно — 16 карток (8 пар)</option>
+      <option value="20">Важко — 20 карток (10 пар)</option>
+      <option value="24">Експерт — 24 картки (12 пар)</option>
+      <option value="32">Майстер — 32 картки (16 пар)</option>
+    </select>
+  </div>
+  <div id="mem-board" style="display:grid;gap:6px;width:300px"></div>
   <div class="overlay" id="mem-ov" style="display:none;position:fixed;border-radius:0">
     <h2>🎉 Молодець!</h2>
     <div class="fs" id="mem-fin">0</div><div class="fl">секунд | <span id="mem-mv2">0</span> ходів</div>
@@ -372,7 +384,7 @@ TC.addEventListener('touchstart',e=>{e.preventDefault();const r=TC.getBoundingCl
 // ══════════ TETRIS ══════════
 const TTC=document.getElementById('tet-c'),TTX=TTC.getContext('2d');
 const NC=document.getElementById('next-c'),NX=NC.getContext('2d');
-const TW=9,TH=18,TS=20;
+const TW=10,TH=20,TS=16;
 const PIECES=[
   {s:[[1,1,1,1]],c:'#22d3ee'},
   {s:[[1,1],[1,1]],c:'#f59e0b'},
@@ -409,7 +421,16 @@ function tetPlace(){
   else{stopAll();addTimer(setInterval(tetTick,Math.max(100,500-tLv*40)));}
 }
 function tetTick(){if(!tRun2)return;if(tetCollide(tPiece.s,tX,tY+1))tetPlace();else{tY++;drawTet();}}
-function tetMove(d){if(!tRun2)return;if(!tetCollide(tPiece.s,tX+d,tY)){tX+=d;drawTet();}}
+function tetMove(d){
+  if(!tRun2)return;
+  if(!tetCollide(tPiece.s,tX+d,tY)){tX+=d;drawTet();}
+}
+let tetMoveLock=false;
+function tetMoveOnce(d){
+  if(tetMoveLock)return; tetMoveLock=true;
+  tetMove(d);
+  setTimeout(()=>tetMoveLock=false,50);
+}
 function tetRotate(){
   if(!tRun2)return;
   const r=tPiece.s[0].map((_,i)=>tPiece.s.map(row=>row[i]).reverse());
@@ -459,34 +480,59 @@ function draw2048(){
     board.appendChild(d);
   }
 }
+function slideRow(row){
+  // remove zeros, merge equal adjacent, pad with zeros
+  let r=row.filter(v=>v);
+  for(let i=0;i<r.length-1;i++){
+    if(r[i]===r[i+1]){r[i]*=2;g2Sc+=r[i];r.splice(i+1,1);}
+  }
+  while(r.length<4)r.push(0);
+  return r;
+}
 function move2048(dir){
-  let moved=false;
-  const rotate=m=>m[0].map((_,i)=>m.map(r=>r[i]).reverse());
-  let b=g2Board.map(r=>[...r]);
-  const slideRow=row=>{
-    let r=row.filter(v=>v);
-    for(let i=0;i<r.length-1;i++){if(r[i]===r[i+1]){r[i]*=2;g2Sc+=r[i];r.splice(i+1,1);}}
-    while(r.length<4)r.push(0);
-    return r;
-  };
-  if(dir==='left'){b=b.map(slideRow);}
-  else if(dir==='right'){b=b.map(r=>slideRow([...r].reverse()).reverse());}
-  else if(dir==='up'){b=rotate(rotate(rotate(b.map(slideRow).map(r=>[...r])))).map(r=>[...r]);
-    // simpler: transpose
-    let t=Array.from({length:4},(_,i)=>b.map(r=>r[i]));
-    t=t.map(slideRow);
-    b=Array.from({length:4},(_,i)=>t.map(r=>r[i]));
+  const prev=JSON.stringify(g2Board);
+  if(dir==='left'){
+    g2Board=g2Board.map(row=>slideRow([...row]));
+  } else if(dir==='right'){
+    g2Board=g2Board.map(row=>slideRow([...row].reverse()).reverse());
+  } else if(dir==='up'){
+    // transpose → slideLeft → transpose back
+    for(let c=0;c<4;c++){
+      let col=g2Board.map(r=>r[c]);
+      col=slideRow(col);
+      g2Board.forEach((r,i)=>r[c]=col[i]);
+    }
+  } else if(dir==='down'){
+    // transpose reversed → slideLeft → reverse back → transpose
+    for(let c=0;c<4;c++){
+      let col=g2Board.map(r=>r[c]).reverse();
+      col=slideRow(col);
+      col.reverse();
+      g2Board.forEach((r,i)=>r[c]=col[i]);
+    }
   }
-  else if(dir==='down'){
-    let t=Array.from({length:4},(_,i)=>b.map(r=>r[i]).reverse());
-    t=t.map(slideRow);
-    b=Array.from({length:4},(_,i)=>t.map(r=>r[i]).reverse());
+  if(JSON.stringify(g2Board)!==prev){
+    add2048Tile();
+    document.getElementById('g2-sc').textContent=g2Sc;
+    draw2048();
   }
-  if(JSON.stringify(b)!==JSON.stringify(g2Board)){moved=true;g2Board=b;}
-  if(moved){add2048Tile();document.getElementById('g2-sc').textContent=g2Sc;draw2048();}
-  if(g2Board.some(r=>r.includes(2048))){document.getElementById('g2-title').textContent='🏆 2048!';document.getElementById('g2-fin').textContent=g2Sc;document.getElementById('g2048-ov').style.display='flex';return;}
-  const hasMove=g2Board.some((r,ri)=>r.some((v,ci)=>!v||v===g2Board[ri][ci+1]||v===(g2Board[ri+1]||[])[ci]));
-  if(!hasMove){document.getElementById('g2-title').textContent='Гра закінчена!';document.getElementById('g2-fin').textContent=g2Sc;document.getElementById('g2048-ov').style.display='flex';}
+  if(g2Board.some(r=>r.includes(2048))){
+    document.getElementById('g2-title').textContent='🏆 2048!';
+    document.getElementById('g2-fin').textContent=g2Sc;
+    document.getElementById('g2048-ov').style.display='flex';
+    return;
+  }
+  let hasMoves=false;
+  for(let r=0;r<4&&!hasMoves;r++)for(let c=0;c<4&&!hasMoves;c++){
+    if(!g2Board[r][c])hasMoves=true;
+    if(c<3&&g2Board[r][c]===g2Board[r][c+1])hasMoves=true;
+    if(r<3&&g2Board[r][c]===(g2Board[r+1]||[])[c])hasMoves=true;
+  }
+  if(!hasMoves){
+    document.getElementById('g2-title').textContent='Гра закінчена!';
+    document.getElementById('g2-fin').textContent=g2Sc;
+    document.getElementById('g2048-ov').style.display='flex';
+  }
 }
 // swipe for 2048
 let swX,swY;
@@ -499,30 +545,42 @@ document.getElementById('g2048-board').addEventListener('touchend',e=>{
 },{passive:true});
 
 // ══════════ MEMORY ══════════
-const EMOJIS=['🍎','🌟','🎮','📚','🎯','🐍','🧩','🔢'];
-let memCards,memFlipped,memMatched,memLock,memSec,memMoves;
+const ALL_EMOJIS=['🍎','🌟','🎮','📚','🎯','🐍','🧩','🔢','🌈','🦋','🎵','🚀','💎','🌺','🦊','🎪'];
+let memCards,memFlipped,memMatched,memLock,memSec,memMoves,memPairs;
+
 function initMemory(){
-  const pairs=[...EMOJIS,...EMOJIS].sort(()=>Math.random()-.5);
+  const level=parseInt(document.getElementById('mem-level').value)||8;
+  memPairs=level/2;
+  const emojis=ALL_EMOJIS.slice(0,memPairs);
+  const pairs=[...emojis,...emojis].sort(()=>Math.random()-.5);
   memCards=pairs.map((e,i)=>({id:i,emoji:e,flipped:false,matched:false}));
   memFlipped=[];memMatched=0;memLock=false;memSec=0;memMoves=0;
   document.getElementById('mem-t').textContent=0;
   document.getElementById('mem-mv').textContent=0;
   document.getElementById('mem-ov').style.display='none';
+  // grid columns based on level
+  const cols=level<=8?4:level<=12?4:level<=16?4:level<=20?5:level<=24?6:8;
+  const cardH=level<=8?65:level<=16?55:level<=20?50:level<=24?46:40;
+  const fs=level<=8?28:level<=16?22:level<=20?20:18;
+  document.getElementById('mem-board').style.gridTemplateColumns=`repeat(${cols},1fr)`;
   stopAll();
   addTimer(setInterval(()=>{ memSec++; document.getElementById('mem-t').textContent=memSec; },1000));
-  renderMemory();
+  renderMemory(cardH,fs);
 }
-function renderMemory(){
+
+function renderMemory(cardH=65,fs=28){
   const b=document.getElementById('mem-board');
   b.innerHTML='';
   memCards.forEach((card,i)=>{
     const d=document.createElement('div');
-    d.style.cssText=`height:65px;border-radius:10px;border:2px solid var(--b);background:${card.flipped||card.matched?'var(--s)':'var(--a)'};display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;transition:.2s;`;
+    d.style.cssText=`height:${cardH}px;border-radius:8px;border:2px solid var(--b);background:${card.flipped||card.matched?'var(--s)':'var(--a)'};display:flex;align-items:center;justify-content:center;font-size:${fs}px;cursor:pointer;transition:.15s;`;
+    if(card.matched)d.style.background='var(--gs,rgba(34,197,94,.2))';
     d.textContent=card.flipped||card.matched?card.emoji:'';
     if(!card.matched)d.addEventListener('click',()=>flipCard(i));
     b.appendChild(d);
   });
 }
+
 function flipCard(i){
   if(memLock||memCards[i].flipped||memCards[i].matched)return;
   memCards[i].flipped=true;memFlipped.push(i);renderMemory();
@@ -533,7 +591,7 @@ function flipCard(i){
     if(memCards[a].emoji===memCards[b2].emoji){
       memCards[a].matched=memCards[b2].matched=true;memMatched++;memFlipped=[];memLock=false;
       renderMemory();
-      if(memMatched===EMOJIS.length){ stopAll(); document.getElementById('mem-fin').textContent=memSec; document.getElementById('mem-mv2').textContent=memMoves; document.getElementById('mem-ov').style.display='flex'; }
+      if(memMatched===memPairs){ stopAll(); document.getElementById('mem-fin').textContent=memSec; document.getElementById('mem-mv2').textContent=memMoves; document.getElementById('mem-ov').style.display='flex'; }
     } else {
       addTimer(setTimeout(()=>{ memCards[a].flipped=memCards[b2].flipped=false;memFlipped=[];memLock=false;renderMemory(); },900));
     }
@@ -544,7 +602,7 @@ function flipCard(i){
 document.addEventListener('keydown',e=>{
   if(cur==='snake'){if(e.key==='ArrowUp')sd(0,-1);if(e.key==='ArrowDown')sd(0,1);if(e.key==='ArrowLeft')sd(-1,0);if(e.key==='ArrowRight')sd(1,0);}
   if(cur==='maze'){if(e.key==='ArrowUp')mm(0,-1);if(e.key==='ArrowDown')mm(0,1);if(e.key==='ArrowLeft')mm(-1,0);if(e.key==='ArrowRight')mm(1,0);e.preventDefault();}
-  if(cur==='tetris'){if(e.key==='ArrowLeft')tetMove(-1);if(e.key==='ArrowRight')tetMove(1);if(e.key==='ArrowUp')tetRotate();if(e.key==='ArrowDown')tetDrop();}
+  if(cur==='tetris'){if(e.key==='ArrowLeft')tetMoveOnce(-1);if(e.key==='ArrowRight')tetMoveOnce(1);if(e.key==='ArrowUp')tetRotate();if(e.key==='ArrowDown')tetDrop();e.preventDefault();}
   if(cur==='g2048'){if(e.key==='ArrowLeft')move2048('left');if(e.key==='ArrowRight')move2048('right');if(e.key==='ArrowUp')move2048('up');if(e.key==='ArrowDown')move2048('down');e.preventDefault();}
 });
 </script>
