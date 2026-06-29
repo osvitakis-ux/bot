@@ -138,6 +138,7 @@ hr{border:none;border-top:1px solid var(--b);margin:18px 0}
     <div class="nav-item" onclick="showPage('feedbacks',this)"><span>💬</span> Відгуки</div>
     <div class="nav-item" onclick="showPage('tests',this)"><span>📝</span> Тести</div>
     <div class="nav-item" onclick="showPage('games',this)"><span>🎮</span> Ігри</div>
+    <div class="nav-item" onclick="showPage('about',this)"><span>🏫</span> Про центр</div>
   </nav>
   <div class="sidebar-footer"><span class="dot"></span>Бот активний</div>
 </aside>
@@ -200,6 +201,61 @@ hr{border:none;border-top:1px solid var(--b);margin:18px 0}
   <div class="page" id="page-games">
     <div class="ph"><h2>Ігри</h2><p>Редагуйте завдання та підказки</p></div>
     <div id="games-list"></div>
+  </div>
+
+  <!-- ABOUT -->
+  <div class="page" id="page-about">
+    <div class="ph"><h2>Про центр</h2><p>Інформація яка відображається в боті</p></div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">🏫 Загальна інформація</span></div>
+      <div class="field" style="margin-bottom:14px">
+        <label>Назва центру</label>
+        <input id="ab-name" placeholder="Репетиторський центр «Константа»">
+      </div>
+      <div class="field" style="margin-bottom:14px">
+        <label>Рік заснування</label>
+        <input id="ab-year" placeholder="2010" style="width:120px">
+      </div>
+      <div class="field" style="margin-bottom:14px">
+        <label>Місія центру</label>
+        <textarea id="ab-mission" rows="2" placeholder="Якісна індивідуальна та групова підготовка..."></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">🏆 Досягнення</span>
+        <button class="btn btn-s btn-sm" onclick="addAchievement()">＋ Додати</button>
+      </div>
+      <div id="ab-achievements"></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">⭐ Рейтинг</span></div>
+      <div class="fg">
+        <div class="field">
+          <label>Рейтинг Google Maps</label>
+          <input id="ab-rating" placeholder="4.9" style="width:80px">
+        </div>
+        <div class="field">
+          <label>Кількість випускників</label>
+          <input id="ab-graduates" placeholder="2000">
+        </div>
+        <div class="field">
+          <label>% успішного складання НМТ</label>
+          <input id="ab-nmt" placeholder="94">
+        </div>
+        <div class="field">
+          <label>Років досвіду</label>
+          <input id="ab-exp" placeholder="15">
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:4px">
+      <button class="btn btn-p" onclick="saveAbout()">💾 Зберегти</button>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-header"><span class="card-title">👁 Попередній перегляд</span></div>
+      <pre id="ab-preview" style="font-size:12px;color:var(--tm);white-space:pre-wrap;line-height:1.6"></pre>
+    </div>
   </div>
 
 </main>
@@ -368,6 +424,7 @@ function showPage(id, el){
   if(id==='feedbacks') renderFeedbacks();
   if(id==='tests') renderTests();
   if(id==='games') renderGames();
+  if(id==='about') renderAbout();
 }
 
 // ── TUTORS ──
@@ -844,6 +901,93 @@ function loadPhotoPreview(photoId) {
     // Telegram file_id — show placeholder
     document.getElementById('photo-upload-label').textContent = '📎 Telegram file_id: ' + photoId.slice(0, 20) + '...';
   }
+}
+
+// ── ABOUT ──
+function renderAbout(){
+  const ab=D.about||{};
+  document.getElementById('ab-name').value=ab.name||'Репетиторський центр «Константа»';
+  document.getElementById('ab-year').value=ab.year||'2010';
+  document.getElementById('ab-mission').value=ab.mission||'Якісна індивідуальна та групова підготовка в комфортній атмосфері з досвідченими педагогами.';
+  document.getElementById('ab-rating').value=ab.rating||'4.9';
+  document.getElementById('ab-graduates').value=ab.graduates||'2000';
+  document.getElementById('ab-nmt').value=ab.nmt||'94';
+  document.getElementById('ab-exp').value=ab.experience||'15';
+  renderAchievements(ab.achievements||[
+    'Понад 2 000 випускників',
+    '94% учнів успішно складають ЗНО/НМТ',
+    '15+ років досвіду',
+    'Рейтинг 4.9 ⭐ на Google Maps'
+  ]);
+  updatePreview();
+}
+
+function renderAchievements(list){
+  document.getElementById('ab-achievements').innerHTML=list.map((a,i)=>`
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+      <input value="${a}" id="ach-${i}" style="flex:1" oninput="updatePreview()">
+      <button class="btn btn-d btn-sm" onclick="removeAchievement(${i})">🗑</button>
+    </div>`).join('');
+}
+
+function addAchievement(){
+  const list=getAchievements();
+  list.push('');
+  renderAchievements(list);
+  document.getElementById(`ach-${list.length-1}`).focus();
+}
+
+function removeAchievement(i){
+  const list=getAchievements();
+  list.splice(i,1);
+  renderAchievements(list);
+  updatePreview();
+}
+
+function getAchievements(){
+  const items=[];
+  document.querySelectorAll('[id^="ach-"]').forEach(el=>items.push(el.value));
+  return items;
+}
+
+function updatePreview(){
+  const name=document.getElementById('ab-name')?.value||'';
+  const year=document.getElementById('ab-year')?.value||'';
+  const mission=document.getElementById('ab-mission')?.value||'';
+  const rating=document.getElementById('ab-rating')?.value||'';
+  const graduates=document.getElementById('ab-graduates')?.value||'';
+  const nmt=document.getElementById('ab-nmt')?.value||'';
+  const exp=document.getElementById('ab-exp')?.value||'';
+  const achs=getAchievements().filter(Boolean).map(a=>`• ${a}`).join('
+');
+  const preview=`🎓 ${name}
+
+Працюємо з ${year} року.
+
+📌 Місія: ${mission}
+
+🏆 Досягнення:
+${achs}
+
+⭐ Рейтинг ${rating} | 🎓 ${graduates}+ випускників
+✅ ${nmt}% НМТ | 📅 ${exp}+ років`;
+  const el=document.getElementById('ab-preview');
+  if(el) el.textContent=preview;
+}
+
+function saveAbout(){
+  D.about={
+    name:document.getElementById('ab-name').value,
+    year:document.getElementById('ab-year').value,
+    mission:document.getElementById('ab-mission').value,
+    rating:document.getElementById('ab-rating').value,
+    graduates:document.getElementById('ab-graduates').value,
+    nmt:document.getElementById('ab-nmt').value,
+    experience:document.getElementById('ab-exp').value,
+    achievements:getAchievements().filter(Boolean)
+  };
+  saveSection('about', D.about);
+  updatePreview();
 }
 
 // ── UTILS ──
