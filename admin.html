@@ -1,0 +1,956 @@
+"<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Константа — Адмін</title>
+<style>
+:root{--bg:#0f1117;--s:#1a1d27;--s2:#222638;--b:#2d3148;--a:#5b6ef5;--ah:#7082ff;--as:rgba(91,110,245,.12);--g:#22c55e;--gs:rgba(34,197,94,.12);--r:#ef4444;--rs:rgba(239,68,68,.12);--am:#f59e0b;--t:#e8eaf0;--tm:#8b90a7;--td:#555870;--rad:10px;--radl:16px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--t);min-height:100vh;display:flex}
+.sidebar{width:210px;background:var(--s);border-right:1px solid var(--b);display:flex;flex-direction:column;padding:20px 0;position:fixed;height:100vh}
+.logo{padding:0 16px 20px;border-bottom:1px solid var(--b);margin-bottom:12px}
+.logo h1{font-size:15px;font-weight:700}.logo span{font-size:11px;color:var(--tm)}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;color:var(--tm);font-size:13px;font-weight:500;border-left:2px solid transparent;transition:.15s}
+.nav-item:hover{color:var(--t);background:var(--as)}.nav-item.active{color:var(--a);background:var(--as);border-left-color:var(--a)}
+.sidebar-footer{margin-top:auto;padding:14px 16px;border-top:1px solid var(--b);font-size:12px;color:var(--tm)}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--g);animation:pulse 2s infinite;margin-right:6px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.main{margin-left:210px;flex:1;padding:28px;max-width:calc(100vw - 210px)}
+.page{display:none}.page.active{display:block}
+.ph{margin-bottom:24px}.ph h2{font-size:20px;font-weight:700;letter-spacing:-.5px;margin-bottom:4px}.ph p{font-size:13px;color:var(--tm)}
+.card{background:var(--s);border:1px solid var(--b);border-radius:var(--radl);padding:22px;margin-bottom:14px}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.card-title{font-size:14px;font-weight:600}
+label{display:block;font-size:11px;font-weight:600;color:var(--tm);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+input,textarea,select{width:100%;background:var(--s2);border:1px solid var(--b);border-radius:var(--rad);padding:9px 12px;color:var(--t);font-size:13px;font-family:inherit;outline:none;transition:border-color .15s}
+input:focus,textarea:focus,select:focus{border-color:var(--a)}
+textarea{resize:vertical;min-height:70px}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.fg3{grid-template-columns:1fr 1fr 1fr}.ffw{grid-column:1/-1}.field{margin-bottom:0}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--rad);font-size:13px;font-weight:600;cursor:pointer;border:none;transition:.15s;font-family:inherit}
+.btn-p{background:var(--a);color:#fff}.btn-p:hover{background:var(--ah);transform:translateY(-1px)}
+.btn-g{background:transparent;color:var(--tm);border:1px solid var(--b)}.btn-g:hover{color:var(--t);border-color:var(--tm)}
+.btn-d{background:var(--rs);color:var(--r)}.btn-d:hover{background:var(--r);color:#fff}
+.btn-s{background:var(--gs);color:var(--g)}.btn-s:hover{background:var(--g);color:#fff}
+.btn-sm{padding:5px 10px;font-size:11px}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.tc{background:var(--s2);border:1px solid var(--b);border-radius:var(--radl);padding:18px;transition:border-color .15s}.tc:hover{border-color:var(--a)}
+.tav{width:50px;height:50px;border-radius:50%;background:var(--as);border:2px solid var(--a);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:10px;overflow:hidden}
+.tav img{width:100%;height:100%;object-fit:cover}
+.tn{font-size:13px;font-weight:600;margin-bottom:3px}.tm{font-size:11px;color:var(--tm);margin-bottom:10px}
+.tag{display:inline-flex;padding:2px 7px;border-radius:20px;font-size:11px;font-weight:500;background:var(--as);color:var(--a);margin:2px}
+.tag.br{background:var(--gs);color:var(--g)}
+.ta{display:flex;gap:6px;margin-top:12px;padding-top:12px;border-top:1px solid var(--b)}
+.bi{background:var(--s2);border:1px solid var(--b);border-radius:var(--radl);padding:18px;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:start;margin-bottom:10px}
+.bn{font-size:14px;font-weight:600;margin-bottom:5px}.bd{font-size:12px;color:var(--tm);margin-bottom:2px}
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;align-items:center;justify-content:center}
+.mo.open{display:flex}
+.modal{background:var(--s);border:1px solid var(--b);border-radius:var(--radl);padding:26px;width:580px;max-width:95vw;max-height:90vh;overflow-y:auto}
+.mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+.mt{font-size:16px;font-weight:700}.xb{background:none;border:none;color:var(--tm);font-size:18px;cursor:pointer}
+.sched{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:10px}
+.dl{font-size:10px;font-weight:700;color:var(--tm);text-align:center;padding:3px 0;text-transform:uppercase}
+.ts{background:var(--s2);border:1px solid var(--b);border-radius:5px;padding:3px 1px;font-size:10px;text-align:center;cursor:pointer;transition:.15s;margin-bottom:3px;color:var(--tm)}
+.ts.on{background:var(--as);border-color:var(--a);color:var(--a);font-weight:700}.ts:hover{border-color:var(--a)}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--g);color:#fff;padding:10px 18px;border-radius:var(--rad);font-size:13px;font-weight:600;z-index:200;transform:translateY(60px);opacity:0;transition:.3s}
+.toast.show{transform:translateY(0);opacity:1}
+hr{border:none;border-top:1px solid var(--b);margin:18px 0}
+.sl{font-size:10px;font-weight:700;color:var(--td);text-transform:uppercase;letter-spacing:1px;margin:20px 0 10px}
+.pr{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;align-items:center;margin-bottom:7px}
+.pr .gl{font-size:12px;color:var(--tm)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.sc{background:var(--s);border:1px solid var(--b);border-radius:var(--radl);padding:18px}
+.sl2{font-size:12px;color:var(--tm);margin-bottom:6px}.sv{font-size:26px;font-weight:700;letter-spacing:-1px}.ss{font-size:11px;color:var(--tm);margin-top:3px}
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;width:100%;background:var(--bg)}
+.login-box{background:var(--s);border:1px solid var(--b);border-radius:var(--radl);padding:36px;width:340px;text-align:center}
+.login-box h2{margin-bottom:6px;font-size:18px}.login-box p{color:var(--tm);font-size:13px;margin-bottom:24px}
+.login-box input{margin-bottom:14px}.login-err{color:var(--r);font-size:12px;margin-top:8px;display:none}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="login-screen">
+  <div class="login-box">
+    <div style="font-size:36px;margin-bottom:12px">🎓</div>
+    <h2>Константа</h2>
+    <p>Адмін панель — введіть пароль</p>
+    <label>Пароль</label>
+    <input type="password" id="pwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn btn-p" style="width:100%" onclick="doLogin()">Увійти</button>
+    <div class="login-err" id="login-err">Невірний пароль</div>
+  </div>
+</div>
+
+<!-- APP (hidden until login) -->
+<div id="app" style="display:none;width:100%;display:none;flex-direction:row">
+
+<aside class="sidebar">
+  <div class="logo"><h1>🎓 Константа</h1><span>Адмін панель</span></div>
+  <nav>
+    <div class="nav-item active" onclick="showPage('dashboard',this)"><span>📊</span> Дашборд</div>
+    <div class="nav-item" onclick="showPage('tutors',this)"><span>👩‍🏫</span> Репетитори</div>
+    <div class="nav-item" onclick="showPage('branches',this)"><span>📍</span> Філіали</div>
+    <div class="nav-item" onclick="showPage('subjects',this)"><span>📚</span> Предмети</div>
+    <div class="nav-item" onclick="showPage('feedbacks',this)"><span>💬</span> Відгуки</div>
+    <div class="nav-item" onclick="showPage('tests',this)"><span>📝</span> Тести</div>
+    <div class="nav-item" onclick="showPage('games',this)"><span>🎮</span> Ігри</div>
+    <div class="nav-item" onclick="showPage('about',this)"><span>🏫</span> Про центр</div>
+  </nav>
+  <div class="sidebar-footer"><span class="dot"></span>Бот активний</div>
+</aside>
+
+<main class="main">
+
+  <!-- DASHBOARD -->
+  <div class="page active" id="page-dashboard">
+    <div class="ph"><h2>Дашборд</h2><p>Загальний огляд</p></div>
+    <div class="stats">
+      <div class="sc"><div class="sl2">Репетиторів</div><div class="sv" id="s-tutors" style="color:var(--a)">—</div><div class="ss">У базі</div></div>
+      <div class="sc"><div class="sl2">Філіалів</div><div class="sv" id="s-branches" style="color:var(--g)">—</div><div class="ss">Активних</div></div>
+      <div class="sc"><div class="sl2">Предметів</div><div class="sv" id="s-subjects" style="color:var(--am)">—</div><div class="ss">У каталозі</div></div>
+      <div class="sc"><div class="sl2">Відгуків</div><div class="sv" id="s-feedbacks" style="color:var(--g)">—</div><div class="ss">Від клієнтів</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">💡 Швидкі дії</span></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-p" onclick="showPage('tutors',document.querySelectorAll('.nav-item')[1]);openAddTutor()">＋ Додати репетитора</button>
+        <button class="btn btn-g" onclick="showPage('branches',document.querySelectorAll('.nav-item')[2])">✏️ Редагувати філіали</button>
+        <button class="btn btn-g" onclick="showPage('subjects',document.querySelectorAll('.nav-item')[3])">💰 Змінити ціни</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TUTORS -->
+  <div class="page" id="page-tutors">
+    <div class="ph"><h2>Репетитори</h2><p>Профілі, розклад, фото</p></div>
+    <div style="margin-bottom:16px"><button class="btn btn-p" onclick="openAddTutor()">＋ Додати репетитора</button></div>
+    <div class="tgrid" id="tutor-grid"></div>
+  </div>
+
+  <!-- BRANCHES -->
+  <div class="page" id="page-branches">
+    <div class="ph"><h2>Філіали</h2><p>Адреси, телефони, режим роботи</p></div>
+    <div style="margin-bottom:16px"><button class="btn btn-p" onclick="openAddBranch()">＋ Додати філіал</button></div>
+    <div id="branch-list"></div>
+  </div>
+
+  <!-- SUBJECTS -->
+  <div class="page" id="page-subjects">
+    <div class="ph"><h2>Предмети та ціни</h2><p>Редагуйте ціни та керуйте предметами</p></div>
+    <div style="margin-bottom:16px"><button class="btn btn-p" onclick="openAddSubject()">＋ Додати предмет</button></div>
+    <div id="subjects-list"></div>
+  </div>
+
+  <!-- FEEDBACKS -->
+  <div class="page" id="page-feedbacks">
+    <div class="ph"><h2>Відгуки</h2><p>Всі відгуки від клієнтів через бота</p></div>
+    <div id="feedbacks-list"></div>
+  </div>
+
+  <!-- TESTS -->
+  <div class="page" id="page-tests">
+    <div class="ph"><h2>Тести</h2><p>Редагуйте питання та варіанти відповідей</p></div>
+    <div id="tests-list"></div>
+  </div>
+
+  <!-- GAMES -->
+  <div class="page" id="page-games">
+    <div class="ph"><h2>Ігри</h2><p>Редагуйте завдання та підказки</p></div>
+    <div id="games-list"></div>
+  </div>
+
+  <!-- ABOUT -->
+  <div class="page" id="page-about">
+    <div class="ph"><h2>Про центр</h2><p>Інформація яка відображається в боті</p></div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">🏫 Загальна інформація</span></div>
+      <div class="field" style="margin-bottom:14px">
+        <label>Назва центру</label>
+        <input id="ab-name" placeholder="Репетиторський центр «Константа»">
+      </div>
+      <div class="field" style="margin-bottom:14px">
+        <label>Рік заснування</label>
+        <input id="ab-year" placeholder="2010" style="width:120px">
+      </div>
+      <div class="field" style="margin-bottom:14px">
+        <label>Місія центру</label>
+        <textarea id="ab-mission" rows="2" placeholder="Якісна індивідуальна та групова підготовка..."></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">🏆 Досягнення</span>
+        <button class="btn btn-s btn-sm" onclick="addAchievement()">＋ Додати</button>
+      </div>
+      <div id="ab-achievements"></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">⭐ Рейтинг</span></div>
+      <div class="fg">
+        <div class="field">
+          <label>Рейтинг Google Maps</label>
+          <input id="ab-rating" placeholder="4.9" style="width:80px">
+        </div>
+        <div class="field">
+          <label>Кількість випускників</label>
+          <input id="ab-graduates" placeholder="2000">
+        </div>
+        <div class="field">
+          <label>% успішного складання НМТ</label>
+          <input id="ab-nmt" placeholder="94">
+        </div>
+        <div class="field">
+          <label>Років досвіду</label>
+          <input id="ab-exp" placeholder="15">
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:4px">
+      <button class="btn btn-p" onclick="saveAbout()">💾 Зберегти</button>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-header"><span class="card-title">👁 Попередній перегляд</span></div>
+      <pre id="ab-preview" style="font-size:12px;color:var(--tm);white-space:pre-wrap;line-height:1.6"></pre>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<!-- MODAL TUTOR -->
+<div class="mo" id="modal-tutor">
+  <div class="modal">
+    <div class="mh"><span class="mt" id="modal-title">Додати репетитора</span><button class="xb" onclick="closeMod('modal-tutor')">✕</button></div>
+    <div class="fg">
+      <div class="field ffw"><label>ПІБ</label><input id="t-name" placeholder="Прізвище Ім'я По-батькові"></div>
+      <div class="field"><label>Досвід</label><input id="t-exp" placeholder="5 років"></div>
+      <div class="field"><label>Філіали</label><div id="t-branches-cb" style="display:flex;flex-direction:column;gap:5px;margin-top:4px;background:var(--s2);border:1px solid var(--b);border-radius:var(--rad);padding:10px"></div></div>
+      <div class="field ffw"><label>Освіта</label><input id="t-edu" placeholder="Університет, факультет"></div>
+      <div class="field ffw"><label>Біографія</label><textarea id="t-bio" placeholder="2-3 речення про підхід та досягнення..."></textarea></div>
+      <div class="field"><label>Ціна (від)</label><input id="t-price" placeholder="від 450 грн/год"></div>
+      <div class="field"><label>Предмети</label><div id="subj-cb" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:4px"></div></div>
+      <div class="field ffw">
+        <label>Фото репетитора</label>
+        <div id="photo-upload-area" onclick="document.getElementById('photo-file').click()" style="border:2px dashed var(--b);border-radius:var(--rad);padding:16px;text-align:center;cursor:pointer;transition:.15s;margin-bottom:8px" onmouseover="this.style.borderColor='var(--a)'" onmouseout="this.style.borderColor='var(--b)'">
+          <div id="photo-preview-wrap" style="display:none;margin-bottom:8px">
+            <img id="photo-preview" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--a)">
+          </div>
+          <div id="photo-upload-label" style="color:var(--tm);font-size:13px">
+            <div style="font-size:24px;margin-bottom:4px">📷</div>
+            Клікніть або перетягніть фото
+          </div>
+          <input type="file" id="photo-file" accept="image/*" style="display:none" onchange="handlePhotoUpload(this)">
+        </div>
+        <input type="text" id="t-photo" placeholder="або вставте Telegram file_id вручну" style="font-size:11px">
+        <div style="font-size:11px;color:var(--tm);margin-top:4px">💡 Завантажте фото через панель або вставте file_id від бота</div>
+      </div>
+    </div>
+    <div class="sl">Розклад вільних годин — клікніть для позначення</div>
+    <div class="sched" id="sched-builder"></div>
+    <hr>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-g" onclick="closeMod('modal-tutor')">Скасувати</button>
+      <button class="btn btn-p" onclick="saveTutor()">💾 Зберегти</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL QUESTION -->
+<div class="mo" id="modal-question">
+  <div class="modal">
+    <div class="mh"><span class="mt" id="qmodal-title">Редагувати питання</span><button class="xb" onclick="closeMod('modal-question')">✕</button></div>
+    <input type="hidden" id="q-section">
+    <input type="hidden" id="q-key">
+    <input type="hidden" id="q-idx">
+    <div class="field" style="margin-bottom:14px"><label>Питання</label><textarea id="q-text" rows="3"></textarea></div>
+    <div id="q-opts-wrap">
+      <div class="sl">Варіанти відповідей</div>
+      <div id="q-opts"></div>
+    </div>
+    <div class="field" style="margin-bottom:14px"><label>Підказка (для ігор)</label><input id="q-hint" placeholder="Необов'язково"></div>
+    <div class="field" style="margin-bottom:14px"><label>Правильна відповідь (для ігор — текст, для тестів — номер 0-3)</label><input id="q-ans"></div>
+    <hr>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-g" onclick="closeMod('modal-question')">Скасувати</button>
+      <button class="btn btn-p" onclick="saveQuestion()">💾 Зберегти</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL BRANCH -->
+<div class="mo" id="modal-branch">
+  <div class="modal">
+    <div class="mh"><span class="mt" id="bmodal-title">Редагувати філіал</span><button class="xb" onclick="closeMod('modal-branch')">✕</button></div>
+    <div class="fg">
+      <div class="field ffw"><label>Назва</label><input id="b-name"></div>
+      <div class="field ffw"><label>Адреса</label><input id="b-address"></div>
+      <div class="field"><label>Телефон</label><input id="b-phone"></div>
+      <div class="field"><label>Транспорт</label><input id="b-transport"></div>
+      <div class="field ffw"><label>Режим роботи</label><input id="b-schedule"></div>
+      <div class="field ffw"><label>Google Maps URL</label><input id="b-map"></div>
+    </div>
+    <hr>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-g" onclick="closeMod('modal-branch')">Скасувати</button>
+      <button class="btn btn-p" onclick="saveBranch()">💾 Зберегти</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ADD SUBJECT -->
+<div class="mo" id="modal-subject">
+  <div class="modal">
+    <div class="mh"><span class="mt" id="smodal-title">Додати предмет</span><button class="xb" onclick="closeMod('modal-subject')">✕</button></div>
+    <input type="hidden" id="s-key-orig">
+    <div class="fg">
+      <div class="field"><label>Emoji</label><input id="s-emoji" placeholder="📐" style="font-size:20px"></div>
+      <div class="field"><label>Назва</label><input id="s-name" placeholder="Математика"></div>
+      <div class="field ffw"><label>Опис</label><input id="s-desc" placeholder="Алгебра, геометрія, підготовка до НМТ"></div>
+    </div>
+    <div class="sl">Ціни по класах (грн / 60 хв)</div>
+    <div id="s-prices-wrap"></div>
+    <button class="btn btn-g btn-sm" style="margin-bottom:16px" onclick="addPriceRow()">＋ Додати клас</button>
+    <hr>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-g" onclick="closeMod('modal-subject')">Скасувати</button>
+      <button class="btn btn-p" onclick="saveSubject()">💾 Зберегти</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">✅ Збережено!</div>
+
+<script>
+const DAYS=["Пн","Вт","Ср","Чт","Пт","Сб","Нд"];
+const TIMES=["09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"];
+let D={tutors:{},branches:{},subjects:{},feedbacks:[]};
+let editTid=null, editBid=null, schedState={};
+
+// ── LOGIN ──
+function doLogin(){
+  const p=document.getElementById('pwd').value;
+  fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:p})})
+    .then(r=>r.json()).then(r=>{
+      if(r.ok){
+        document.getElementById('login-screen').style.display='none';
+        const app=document.getElementById('app');
+        app.style.display='flex';
+        loadData();
+      } else {
+        document.getElementById('login-err').style.display='block';
+      }
+    });
+}
+
+// ── DATA ──
+function loadData(){
+  fetch('/api/data').then(r=>r.json()).then(d=>{
+    D=d;
+    updateStats();
+  });
+}
+
+function saveSection(section, payload){
+  fetch('/api/save',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({section, data: payload})
+  }).then(r=>r.json()).then(r=>{
+    if(r.ok) showToast('✅ Збережено!');
+    else showToast('❌ Помилка збереження');
+  });
+}
+
+function updateStats(){
+  document.getElementById('s-tutors').textContent=Object.keys(D.tutors||{}).length;
+  document.getElementById('s-branches').textContent=Object.keys(D.branches||{}).length;
+  document.getElementById('s-subjects').textContent=Object.keys(D.subjects||{}).length;
+  document.getElementById('s-feedbacks').textContent=(D.feedbacks||[]).length;
+}
+
+// ── NAVIGATION ──
+function showPage(id, el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(el) el.classList.add('active');
+  if(id==='tutors') renderTutors();
+  if(id==='branches') renderBranches();
+  if(id==='subjects') renderSubjects();
+  if(id==='feedbacks') renderFeedbacks();
+  if(id==='tests') renderTests();
+  if(id==='games') renderGames();
+  if(id==='about') renderAbout();
+}
+
+// ── TUTORS ──
+function getAvatarHtml(photo_id){
+  if(!photo_id) return '👤';
+  if(photo_id.startsWith('photo_')){
+    return `<img src="/api/photo_img/${photo_id}" onerror="this.parentNode.innerHTML='👤'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+  }
+  return `<img src="${photo_id}" onerror="this.parentNode.innerHTML='👤'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+}
+
+function renderTutors(){
+  const g=document.getElementById('tutor-grid');
+  g.innerHTML=Object.entries(D.tutors||{}).map(([id,t])=>`
+    <div class="tc">
+      <div class="tav">${getAvatarHtml(t.photo_id)}</div>
+      <div class="tn">${t.name}</div>
+      <div class="tm">📍 ${(Array.isArray(t.branches)?t.branches:(t.branch?[t.branch]:[])).map(b=>D.branches[b]?.name||b).join(', ')} · ${t.experience||''}</div>
+      <div>${(t.subjects||[]).map(s=>`<span class="tag">${D.subjects[s]?.emoji||''} ${D.subjects[s]?.name||s}</span>`).join('')}</div>
+      <div class="ta">
+        <button class="btn btn-g btn-sm" onclick="editTutor('${id}')">✏️ Ред.</button>
+        <button class="btn btn-s btn-sm" onclick="editTutor('${id}')">🗓 Розклад</button>
+        <button class="btn btn-d btn-sm" onclick="deleteTutor('${id}')">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+function buildSchedGrid(schedule={}){
+  schedState={};
+  DAYS.forEach(d=>{ schedState[d]={}; TIMES.forEach(t=>{ schedState[d][t]=(schedule[d]||[]).includes(t); }); });
+  return `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px">
+    ${DAYS.map(d=>`<div><div class="dl">${d}</div>${TIMES.map(t=>`<div class="ts ${schedState[d][t]?'on':''}" onclick="togSlot('${d}','${t}',this)">${t.slice(0,5)}</div>`).join('')}</div>`).join('')}
+  </div>`;
+}
+
+function togSlot(d,t,el){ schedState[d][t]=!schedState[d][t]; el.classList.toggle('on'); }
+
+function buildBranchOpts(selected=''){
+  return Object.entries(D.branches||{}).map(([k,b])=>`<option value="${k}" ${k===selected?'selected':''}>${b.name}</option>`).join('');
+}
+
+function buildBranchCheckboxes(selected=[]){
+  const sel = Array.isArray(selected) ? selected : (selected ? [selected] : []);
+  document.getElementById('t-branches-cb').innerHTML=Object.entries(D.branches||{}).map(([k,b])=>`
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--t);text-transform:none;letter-spacing:0;margin:0">
+      <input type="checkbox" value="${k}" ${sel.includes(k)?'checked':''} style="width:auto;accent-color:var(--a)"> 📍 ${b.name}
+    </label>`).join('');
+}
+
+function getSelectedBranches(){
+  return [...document.querySelectorAll('#t-branches-cb input:checked')].map(i=>i.value);
+}
+
+function buildSubjCbs(selected=[]){
+  return Object.entries(D.subjects||{}).map(([k,s])=>`
+    <label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;font-size:12px;color:var(--t);text-transform:none;letter-spacing:0;margin:2px">
+      <input type="checkbox" value="${k}" ${selected.includes(k)?'checked':''} style="width:auto"> ${s.emoji} ${s.name}
+    </label>`).join('');
+}
+
+function openAddTutor(){
+  editTid=null;
+  document.getElementById('modal-title').textContent='Додати репетитора';
+  ['t-name','t-exp','t-edu','t-bio','t-price','t-photo'].forEach(id=>document.getElementById(id).value='');
+  buildBranchCheckboxes([]);
+  document.getElementById('photo-preview-wrap').style.display='none';
+  document.getElementById('photo-upload-label').innerHTML='<div style="font-size:24px;margin-bottom:4px">📷</div>Клікніть або перетягніть фото';
+  document.getElementById('subj-cb').innerHTML=buildSubjCbs();
+  document.getElementById('sched-builder').innerHTML=buildSchedGrid();
+  document.getElementById('modal-tutor').classList.add('open');
+}
+
+function editTutor(id){
+  editTid=id; const t=D.tutors[id];
+  document.getElementById('modal-title').textContent='Редагувати репетитора';
+  document.getElementById('t-name').value=t.name||'';
+  document.getElementById('t-exp').value=t.experience||'';
+  document.getElementById('t-edu').value=t.education||'';
+  document.getElementById('t-bio').value=t.bio||'';
+  document.getElementById('t-price').value=t.price_note||'';
+  document.getElementById('t-photo').value=t.photo_id||'';
+  document.getElementById('photo-preview-wrap').style.display='none';
+  document.getElementById('photo-upload-label').innerHTML='<div style="font-size:24px;margin-bottom:4px">📷</div>Клікніть або перетягніть фото';
+  if(t.photo_id) loadPhotoPreview(t.photo_id);
+  const branches=Array.isArray(t.branches)?t.branches:(t.branch?[t.branch]:[]);
+  buildBranchCheckboxes(branches);
+  document.getElementById('subj-cb').innerHTML=buildSubjCbs(t.subjects||[]);
+  document.getElementById('sched-builder').innerHTML=buildSchedGrid(t.schedule||{});
+  document.getElementById('modal-tutor').classList.add('open');
+}
+
+function saveTutor(){
+  const name=document.getElementById('t-name').value.trim();
+  if(!name){alert('Введіть ПІБ'); return;}
+  const subjects=[...document.querySelectorAll('#subj-cb input:checked')].map(i=>i.value);
+  const schedule={};
+  DAYS.forEach(d=>{ const h=TIMES.filter(t=>schedState[d]?.[t]); if(h.length) schedule[d]=h; });
+  const tutor={name,experience:document.getElementById('t-exp').value,education:document.getElementById('t-edu').value,
+    bio:document.getElementById('t-bio').value,price_note:document.getElementById('t-price').value,
+    photo_id:document.getElementById('t-photo').value,
+    branches:getSelectedBranches(),
+    branch:getSelectedBranches()[0]||'branch_1',subjects,schedule};
+  if(editTid) D.tutors[editTid]=tutor;
+  else D.tutors['t'+Date.now()]=tutor;
+  saveSection('tutors', D.tutors);
+  closeMod('modal-tutor');
+  renderTutors();
+  updateStats();
+}
+
+function deleteTutor(id){
+  if(!confirm(`Видалити ${D.tutors[id].name}?`)) return;
+  delete D.tutors[id];
+  saveSection('tutors', D.tutors);
+  renderTutors();
+  showToast('🗑 Видалено');
+}
+
+// ── BRANCHES ──
+function openAddBranch(){
+  editBid=null;
+  document.getElementById('bmodal-title').textContent='Додати філіал';
+  ['b-name','b-address','b-phone','b-transport','b-schedule','b-map'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('modal-branch').classList.add('open');
+}
+
+function renderBranches(){
+  document.getElementById('branch-list').innerHTML=Object.entries(D.branches||{}).map(([id,b])=>`
+    <div class="bi">
+      <div><div class="bn">📍 ${b.name}</div><div class="bd">🏠 ${b.address}</div><div class="bd">📞 ${b.phone}</div><div class="bd">🕐 ${b.schedule}</div><div class="bd">${b.transport}</div></div>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <button class="btn btn-g btn-sm" onclick="editBranch('${id}')">✏️ Ред.</button>
+        <button class="btn btn-d btn-sm" onclick="deleteBranch('${id}')">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+function deleteBranch(id){
+  const name = D.branches[id]?.name || id;
+  if(!confirm(`Видалити філіал "${name}"?\nРепетитори цього філіалу втратять прив\'язку!`)) return;
+  delete D.branches[id];
+  saveSection('branches', D.branches);
+  renderBranches();
+  // Update branch select in tutor modal
+  document.getElementById('t-branch').innerHTML=buildBranchOpts();
+  showToast('🗑 Філіал видалено');
+}
+
+function editBranch(id){
+  editBid=id; const b=D.branches[id];
+  document.getElementById('bmodal-title').textContent='Редагувати: '+b.name;
+  document.getElementById('b-name').value=b.name||'';
+  document.getElementById('b-address').value=b.address||'';
+  document.getElementById('b-phone').value=b.phone||'';
+  document.getElementById('b-transport').value=b.transport||'';
+  document.getElementById('b-schedule').value=b.schedule||'';
+  document.getElementById('b-map').value=b.map_url||'';
+  document.getElementById('modal-branch').classList.add('open');
+}
+
+function saveBranch(){
+  const name=document.getElementById('b-name').value.trim();
+  if(!name){alert('Введіть назву філіалу');return;}
+  const branch={
+    name,
+    address:document.getElementById('b-address').value,
+    phone:document.getElementById('b-phone').value,
+    transport:document.getElementById('b-transport').value,
+    schedule:document.getElementById('b-schedule').value,
+    map_url:document.getElementById('b-map').value
+  };
+  if(editBid) D.branches[editBid]=branch;
+  else {
+    const key='branch_'+Date.now();
+    D.branches[key]=branch;
+  }
+  saveSection('branches', D.branches);
+  closeMod('modal-branch');
+  renderBranches();
+  showToast('✅ Філіал збережено!');
+}
+
+// ── SUBJECTS ──
+let priceRowCount = 0;
+
+function openAddSubject(){
+  document.getElementById('smodal-title').textContent='Додати предмет';
+  document.getElementById('s-key-orig').value='';
+  document.getElementById('s-emoji').value='';
+  document.getElementById('s-name').value='';
+  document.getElementById('s-desc').value='';
+  priceRowCount=0;
+  document.getElementById('s-prices-wrap').innerHTML='';
+  addPriceRow();
+  document.getElementById('modal-subject').classList.add('open');
+}
+
+function editSubject(key){
+  const s=D.subjects[key];
+  document.getElementById('smodal-title').textContent='Редагувати: '+s.name;
+  document.getElementById('s-key-orig').value=key;
+  document.getElementById('s-emoji').value=s.emoji||'';;
+  document.getElementById('s-name').value=s.name||'';;
+  document.getElementById('s-desc').value=s.desc||'';;
+  priceRowCount=0;
+  document.getElementById('s-prices-wrap').innerHTML='';
+  Object.entries(s.prices||{}).forEach(([grade,p])=>addPriceRow(grade,p['індив']||0,p['група']||0));
+  document.getElementById('modal-subject').classList.add('open');
+}
+
+function addPriceRow(grade='', indiv=0, group=0){
+  const i=priceRowCount++;
+  const wrap=document.getElementById('s-prices-wrap');
+  const div=document.createElement('div');
+  div.id='price-row-'+i;
+  div.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:end;margin-bottom:10px';
+  div.innerHTML=`
+    <div><label>Клас</label><input id="pg-${i}" value="${grade}" placeholder="1–4 клас"></div>
+    <div><label>Індивід. (грн)</label><input type="number" id="pi-${i}" value="${indiv}"></div>
+    <div><label>Група (грн)</label><input type="number" id="pp-${i}" value="${group}"></div>
+    <button class="btn btn-d btn-sm" style="margin-bottom:1px" onclick="document.getElementById('price-row-${i}').remove()">🗑</button>
+  `;
+  wrap.appendChild(div);
+}
+
+function saveSubject(){
+  const name=document.getElementById('s-name').value.trim();
+  if(!name){alert('Введіть назву предмету');return;}
+  const prices={};
+  document.querySelectorAll('[id^="price-row-"]').forEach(row=>{
+    const i=row.id.replace('price-row-','');
+    const grade=document.getElementById('pg-'+i)?.value.trim();
+    const indiv=parseInt(document.getElementById('pi-'+i)?.value)||0;
+    const group=parseInt(document.getElementById('pp-'+i)?.value)||0;
+    if(grade) prices[grade]={'індив':indiv,'група':group};
+  });
+  const subj={emoji:document.getElementById('s-emoji').value||'📚',name,desc:document.getElementById('s-desc').value,prices};
+  const origKey=document.getElementById('s-key-orig').value;
+  if(origKey) D.subjects[origKey]=subj;
+  else {
+    const key=name.toLowerCase().replace(/[^a-zа-яіїє]/gi,'_').slice(0,8)+'_'+Date.now().toString().slice(-4);
+    D.subjects[key]=subj;
+  }
+  saveSection('subjects',D.subjects);
+  closeMod('modal-subject');
+  renderSubjects();
+  showToast('✅ Предмет збережено!');
+}
+
+function deleteSubject(key){
+  const name=D.subjects[key]?.name||key;
+  if(!confirm(`Видалити предмет "${name}"?`)) return;
+  delete D.subjects[key];
+  saveSection('subjects',D.subjects);
+  renderSubjects();
+  showToast('🗑 Предмет видалено');
+}
+
+function renderSubjects(){
+  document.getElementById('subjects-list').innerHTML=Object.entries(D.subjects||{}).map(([key,s])=>`
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-header">
+        <span class="card-title">${s.emoji} ${s.name}</span>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-g btn-sm" onclick="editSubject('${key}')">✏️ Ред.</button>
+          <button class="btn btn-d btn-sm" onclick="deleteSubject('${key}')">🗑 Видалити</button>
+        </div>
+      </div>
+      <div class="fg" style="margin-bottom:10px">
+        <div class="field ffw"><label>Опис</label><input value="${s.desc||''}" onchange="D.subjects['${key}'].desc=this.value" onblur="saveSection('subjects',D.subjects)"></div>
+      </div>
+      <div class="sl">Ціни (грн / 60 хв)</div>
+      ${Object.entries(s.prices||{}).map(([grade,p])=>`
+        <div class="pr">
+          <span class="gl">${grade}</span>
+          <div><label>Індивід.</label><input type="number" value="${p['індив']||0}" style="width:90px" onchange="D.subjects['${key}'].prices['${grade}']['індив']=+this.value" onblur="saveSection('subjects',D.subjects)"></div>
+          <div><label>Група</label><input type="number" value="${p['група']||0}" style="width:90px" onchange="D.subjects['${key}'].prices['${grade}']['група']=+this.value" onblur="saveSection('subjects',D.subjects)"></div>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+// ── FEEDBACKS ──
+function renderFeedbacks(){
+  const fb=D.feedbacks||[];
+  document.getElementById('feedbacks-list').innerHTML=fb.length
+    ? fb.slice().reverse().map(f=>`
+        <div class="card" style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <b>${f.user||'Анонім'}</b><span style="color:var(--am)">${'⭐'.repeat(+f.rating||0)}</span>
+          </div>
+          <div style="font-size:13px;color:var(--tm);margin-bottom:6px">${f.text||''}</div>
+          <div style="font-size:11px;color:var(--td)">${f.date||''}</div>
+        </div>`).join('')
+    : '<div style="color:var(--tm);text-align:center;padding:40px">Відгуків ще немає</div>';
+}
+
+// ── TESTS ──
+function renderTests(){
+  const tests=D.tests||{};
+  document.getElementById('tests-list').innerHTML=Object.entries(tests).map(([key,t])=>`
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-header">
+        <span class="card-title">📝 ${t.name}</span>
+        <button class="btn btn-s btn-sm" onclick="addQuestion('tests','${key}')">＋ Питання</button>
+      </div>
+      <div>${(t.questions||[]).map((q,i)=>`
+        <div style="background:var(--s2);border:1px solid var(--b);border-radius:8px;padding:12px;margin-bottom:8px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start">
+          <div>
+            <div style="font-size:13px;font-weight:600;margin-bottom:6px">${i+1}. ${q.q}</div>
+            <div style="font-size:12px;color:var(--tm)">${(q.opts||[]).map((o,oi)=>`<span style="margin-right:8px;${oi===q.ans?'color:var(--g);font-weight:600':''}">${oi===q.ans?'✅':'○'} ${o}</span>`).join('')}</div>
+          </div>
+          <div style="display:flex;gap:5px">
+            <button class="btn btn-g btn-sm" onclick="editQuestion('tests','${key}',${i})">✏️</button>
+            <button class="btn btn-d btn-sm" onclick="deleteQuestion('tests','${key}',${i})">🗑</button>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+// ── GAMES ──
+function renderGames(){
+  const games=D.games||{};
+  document.getElementById('games-list').innerHTML=Object.entries(games).map(([key,g])=>`
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-header">
+        <span class="card-title">${g.name}</span>
+        <button class="btn btn-s btn-sm" onclick="addQuestion('games','${key}')">＋ Завдання</button>
+      </div>
+      <div>${(g.problems||[]).map((p,i)=>`
+        <div style="background:var(--s2);border:1px solid var(--b);border-radius:8px;padding:12px;margin-bottom:8px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start">
+          <div>
+            <div style="font-size:13px;font-weight:600;margin-bottom:4px">${i+1}. ${p.q}</div>
+            <div style="font-size:12px;color:var(--g)">✅ ${p.ans}</div>
+            <div style="font-size:11px;color:var(--tm)">💡 ${p.hint||'—'}</div>
+          </div>
+          <div style="display:flex;gap:5px">
+            <button class="btn btn-g btn-sm" onclick="editQuestion('games','${key}',${i})">✏️</button>
+            <button class="btn btn-d btn-sm" onclick="deleteQuestion('games','${key}',${i})">🗑</button>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+// ── QUESTION EDIT ──
+function editQuestion(section, key, idx){
+  document.getElementById('q-section').value=section;
+  document.getElementById('q-key').value=key;
+  document.getElementById('q-idx').value=idx;
+  const items = section==='tests' ? D.tests[key].questions : D.games[key].problems;
+  const item = items[idx];
+  document.getElementById('qmodal-title').textContent='Редагувати питання';
+  document.getElementById('q-text').value=item.q||'';
+  document.getElementById('q-hint').value=item.hint||'';;
+  document.getElementById('q-ans').value=item.ans!==undefined?item.ans:'';
+  if(section==='tests'){
+    document.getElementById('q-opts-wrap').style.display='block';
+    document.getElementById('q-opts').innerHTML=(item.opts||['','','','']).map((o,i)=>`
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center;margin-bottom:8px">
+        <span style="font-size:12px;color:var(--tm);width:20px">${i}.</span>
+        <input value="${o}" id="opt-${i}" placeholder="Варіант ${i+1}">
+      </div>`).join('');
+  } else {
+    document.getElementById('q-opts-wrap').style.display='none';
+  }
+  document.getElementById('modal-question').classList.add('open');
+}
+
+function addQuestion(section, key){
+  document.getElementById('q-section').value=section;
+  document.getElementById('q-key').value=key;
+  document.getElementById('q-idx').value='-1';
+  document.getElementById('qmodal-title').textContent='Нове питання';
+  document.getElementById('q-text').value='';
+  document.getElementById('q-hint').value='';
+  document.getElementById('q-ans').value='';
+  if(section==='tests'){
+    document.getElementById('q-opts-wrap').style.display='block';
+    document.getElementById('q-opts').innerHTML=[0,1,2,3].map(i=>`
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center;margin-bottom:8px">
+        <span style="font-size:12px;color:var(--tm);width:20px">${i}.</span>
+        <input id="opt-${i}" placeholder="Варіант ${i+1}">
+      </div>`).join('');
+  } else {
+    document.getElementById('q-opts-wrap').style.display='none';
+  }
+  document.getElementById('modal-question').classList.add('open');
+}
+
+function saveQuestion(){
+  const section=document.getElementById('q-section').value;
+  const key=document.getElementById('q-key').value;
+  const idx=parseInt(document.getElementById('q-idx').value);
+  const q=document.getElementById('q-text').value.trim();
+  if(!q){alert('Введіть питання');return;}
+  let item={q};
+  if(section==='tests'){
+    item.opts=[0,1,2,3].map(i=>document.getElementById('opt-'+i).value);
+    item.ans=parseInt(document.getElementById('q-ans').value)||0;
+  } else {
+    item.ans=document.getElementById('q-ans').value;
+    item.hint=document.getElementById('q-hint').value;
+  }
+  const arr = section==='tests' ? D.tests[key].questions : D.games[key].problems;
+  if(idx===-1) arr.push(item);
+  else arr[idx]=item;
+  saveSection(section==='tests'?'tests':'games', section==='tests'?D.tests:D.games);
+  closeMod('modal-question');
+  if(section==='tests') renderTests();
+  else renderGames();
+  showToast('✅ Збережено!');
+}
+
+function deleteQuestion(section, key, idx){
+  if(!confirm('Видалити це питання?')) return;
+  const arr = section==='tests' ? D.tests[key].questions : D.games[key].problems;
+  arr.splice(idx,1);
+  saveSection(section==='tests'?'tests':'games', section==='tests'?D.tests:D.games);
+  if(section==='tests') renderTests();
+  else renderGames();
+  showToast('🗑 Видалено');
+}
+
+// ── PHOTO UPLOAD ──
+function handlePhotoUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { showToast('❌ Фото більше 5MB'); return; }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const b64 = e.target.result;
+
+    // Show preview immediately
+    document.getElementById('photo-preview').src = b64;
+    document.getElementById('photo-preview-wrap').style.display = 'block';
+    document.getElementById('photo-upload-label').textContent = '✅ ' + file.name;
+
+    // Upload to server
+    showToast('⏳ Завантаження фото...');
+    fetch('/api/upload_photo', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({photo_b64: b64})
+    })
+    .then(r => r.json())
+    .then(r => {
+      if (r.ok) {
+        document.getElementById('t-photo').value = r.photo_id;
+        showToast('✅ Фото завантажено!');
+      } else {
+        showToast('❌ Помилка завантаження');
+      }
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+function loadPhotoPreview(photoId) {
+  if (!photoId) return;
+  if (photoId.startsWith('photo_')) {
+    // Our uploaded photo
+    fetch('/api/photo/' + photoId)
+      .then(r => r.json())
+      .then(r => {
+        if (r.ok) {
+          document.getElementById('photo-preview').src = r.data;
+          document.getElementById('photo-preview-wrap').style.display = 'block';
+          document.getElementById('photo-upload-label').textContent = '✅ Фото завантажено';
+        }
+      });
+  } else if (photoId) {
+    // Telegram file_id — show placeholder
+    document.getElementById('photo-upload-label').textContent = '📎 Telegram file_id: ' + photoId.slice(0, 20) + '...';
+  }
+}
+
+// ── ABOUT ──
+function renderAbout(){
+  const ab=D.about||{};
+  document.getElementById('ab-name').value=ab.name||'Репетиторський центр «Константа»';
+  document.getElementById('ab-year').value=ab.year||'2010';
+  document.getElementById('ab-mission').value=ab.mission||'Якісна індивідуальна та групова підготовка в комфортній атмосфері з досвідченими педагогами.';
+  document.getElementById('ab-rating').value=ab.rating||'4.9';
+  document.getElementById('ab-graduates').value=ab.graduates||'2000';
+  document.getElementById('ab-nmt').value=ab.nmt||'94';
+  document.getElementById('ab-exp').value=ab.experience||'15';
+  renderAchievements(ab.achievements||[
+    'Понад 2 000 випускників',
+    '94% учнів успішно складають ЗНО/НМТ',
+    '15+ років досвіду',
+    'Рейтинг 4.9 ⭐ на Google Maps'
+  ]);
+  updatePreview();
+}
+
+function renderAchievements(list){
+  document.getElementById('ab-achievements').innerHTML=list.map((a,i)=>`
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+      <input value="${a}" id="ach-${i}" style="flex:1" oninput="updatePreview()">
+      <button class="btn btn-d btn-sm" onclick="removeAchievement(${i})">🗑</button>
+    </div>`).join('');
+}
+
+function addAchievement(){
+  const list=getAchievements();
+  list.push('');
+  renderAchievements(list);
+  document.getElementById(`ach-${list.length-1}`).focus();
+}
+
+function removeAchievement(i){
+  const list=getAchievements();
+  list.splice(i,1);
+  renderAchievements(list);
+  updatePreview();
+}
+
+function getAchievements(){
+  const items=[];
+  document.querySelectorAll('[id^="ach-"]').forEach(el=>items.push(el.value));
+  return items;
+}
+
+function updatePreview(){
+  const name=document.getElementById('ab-name')?.value||'';
+  const year=document.getElementById('ab-year')?.value||'';
+  const mission=document.getElementById('ab-mission')?.value||'';
+  const rating=document.getElementById('ab-rating')?.value||'';
+  const graduates=document.getElementById('ab-graduates')?.value||'';
+  const nmt=document.getElementById('ab-nmt')?.value||'';
+  const exp=document.getElementById('ab-exp')?.value||'';
+  const achs=getAchievements().filter(Boolean).map(a=>`• ${a}`).join('
+');
+  const preview=`🎓 ${name}
+
+Працюємо з ${year} року.
+
+📌 Місія: ${mission}
+
+🏆 Досягнення:
+${achs}
+
+⭐ Рейтинг ${rating} | 🎓 ${graduates}+ випускників
+✅ ${nmt}% НМТ | 📅 ${exp}+ років`;
+  const el=document.getElementById('ab-preview');
+  if(el) el.textContent=preview;
+}
+
+function saveAbout(){
+  D.about={
+    name:document.getElementById('ab-name').value,
+    year:document.getElementById('ab-year').value,
+    mission:document.getElementById('ab-mission').value,
+    rating:document.getElementById('ab-rating').value,
+    graduates:document.getElementById('ab-graduates').value,
+    nmt:document.getElementById('ab-nmt').value,
+    experience:document.getElementById('ab-exp').value,
+    achievements:getAchievements().filter(Boolean)
+  };
+  saveSection('about', D.about);
+  updatePreview();
+}
+
+// ── UTILS ──
+function closeMod(id){ document.getElementById(id).classList.remove('open'); }
+function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
+</script>
+</body>
+</html>
