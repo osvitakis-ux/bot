@@ -9,8 +9,9 @@ import os
 import logging
 import random
 from config import BOT_TOKEN, ADMIN_CHAT_ID, ADMIN_PASSWORD
+GAMES_URL = os.environ.get("GAMES_URL", "")  # URL вашого Railway сервісу + /games
 from admin import start_admin_in_thread
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import (
     Application, CommandHandler, CallbackQueryHandler,
     MessageHandler, filters, ContextTypes,
