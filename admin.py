@@ -212,7 +212,7 @@ hr{border:none;border-top:1px solid var(--b);margin:18px 0}
     <div class="fg">
       <div class="field ffw"><label>ПІБ</label><input id="t-name" placeholder="Прізвище Ім'я По-батькові"></div>
       <div class="field"><label>Досвід</label><input id="t-exp" placeholder="5 років"></div>
-      <div class="field"><label>Філіал</label><select id="t-branch" style=""></select></div>
+      <div class="field"><label>Філіали</label><div id="t-branches-cb" style="display:flex;flex-direction:column;gap:5px;margin-top:4px;background:var(--s2);border:1px solid var(--b);border-radius:var(--rad);padding:10px"></div></div>
       <div class="field ffw"><label>Освіта</label><input id="t-edu" placeholder="Університет, факультет"></div>
       <div class="field ffw"><label>Біографія</label><textarea id="t-bio" placeholder="2-3 речення про підхід та досягнення..."></textarea></div>
       <div class="field"><label>Ціна (від)</label><input id="t-price" placeholder="від 450 грн/год"></div>
@@ -371,13 +371,21 @@ function showPage(id, el){
 }
 
 // ── TUTORS ──
+function getAvatarHtml(photo_id){
+  if(!photo_id) return '👤';
+  if(photo_id.startsWith('photo_')){
+    return `<img src="/api/photo_img/${photo_id}" onerror="this.parentNode.innerHTML='👤'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+  }
+  return `<img src="${photo_id}" onerror="this.parentNode.innerHTML='👤'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+}
+
 function renderTutors(){
   const g=document.getElementById('tutor-grid');
   g.innerHTML=Object.entries(D.tutors||{}).map(([id,t])=>`
     <div class="tc">
-      <div class="tav">${t.photo_id?`<img src="${t.photo_id}" onerror="this.parentNode.innerHTML='👤'">`:'👤'}</div>
+      <div class="tav">${getAvatarHtml(t.photo_id)}</div>
       <div class="tn">${t.name}</div>
-      <div class="tm">📍 ${D.branches[t.branch]?.name||t.branch} · ${t.experience||''}</div>
+      <div class="tm">📍 ${(Array.isArray(t.branches)?t.branches:(t.branch?[t.branch]:[])).map(b=>D.branches[b]?.name||b).join(', ')} · ${t.experience||''}</div>
       <div>${(t.subjects||[]).map(s=>`<span class="tag">${D.subjects[s]?.emoji||''} ${D.subjects[s]?.name||s}</span>`).join('')}</div>
       <div class="ta">
         <button class="btn btn-g btn-sm" onclick="editTutor('${id}')">✏️ Ред.</button>
@@ -401,6 +409,18 @@ function buildBranchOpts(selected=''){
   return Object.entries(D.branches||{}).map(([k,b])=>`<option value="${k}" ${k===selected?'selected':''}>${b.name}</option>`).join('');
 }
 
+function buildBranchCheckboxes(selected=[]){
+  const sel = Array.isArray(selected) ? selected : (selected ? [selected] : []);
+  document.getElementById('t-branches-cb').innerHTML=Object.entries(D.branches||{}).map(([k,b])=>`
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--t);text-transform:none;letter-spacing:0;margin:0">
+      <input type="checkbox" value="${k}" ${sel.includes(k)?'checked':''} style="width:auto;accent-color:var(--a)"> 📍 ${b.name}
+    </label>`).join('');
+}
+
+function getSelectedBranches(){
+  return [...document.querySelectorAll('#t-branches-cb input:checked')].map(i=>i.value);
+}
+
 function buildSubjCbs(selected=[]){
   return Object.entries(D.subjects||{}).map(([k,s])=>`
     <label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;font-size:12px;color:var(--t);text-transform:none;letter-spacing:0;margin:2px">
@@ -412,7 +432,7 @@ function openAddTutor(){
   editTid=null;
   document.getElementById('modal-title').textContent='Додати репетитора';
   ['t-name','t-exp','t-edu','t-bio','t-price','t-photo'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('t-branch').innerHTML=buildBranchOpts();
+  buildBranchCheckboxes([]);
   document.getElementById('photo-preview-wrap').style.display='none';
   document.getElementById('photo-upload-label').innerHTML='<div style="font-size:24px;margin-bottom:4px">📷</div>Клікніть або перетягніть фото';
   document.getElementById('subj-cb').innerHTML=buildSubjCbs();
@@ -432,7 +452,8 @@ function editTutor(id){
   document.getElementById('photo-preview-wrap').style.display='none';
   document.getElementById('photo-upload-label').innerHTML='<div style="font-size:24px;margin-bottom:4px">📷</div>Клікніть або перетягніть фото';
   if(t.photo_id) loadPhotoPreview(t.photo_id);
-  document.getElementById('t-branch').innerHTML=buildBranchOpts(t.branch);
+  const branches=Array.isArray(t.branches)?t.branches:(t.branch?[t.branch]:[]);
+  buildBranchCheckboxes(branches);
   document.getElementById('subj-cb').innerHTML=buildSubjCbs(t.subjects||[]);
   document.getElementById('sched-builder').innerHTML=buildSchedGrid(t.schedule||{});
   document.getElementById('modal-tutor').classList.add('open');
@@ -446,7 +467,9 @@ function saveTutor(){
   DAYS.forEach(d=>{ const h=TIMES.filter(t=>schedState[d]?.[t]); if(h.length) schedule[d]=h; });
   const tutor={name,experience:document.getElementById('t-exp').value,education:document.getElementById('t-edu').value,
     bio:document.getElementById('t-bio').value,price_note:document.getElementById('t-price').value,
-    photo_id:document.getElementById('t-photo').value,branch:document.getElementById('t-branch').value,subjects,schedule};
+    photo_id:document.getElementById('t-photo').value,
+    branches:getSelectedBranches(),
+    branch:getSelectedBranches()[0]||'branch_1',subjects,schedule};
   if(editTid) D.tutors[editTid]=tutor;
   else D.tutors['t'+Date.now()]=tutor;
   saveSection('tutors', D.tutors);
@@ -484,7 +507,7 @@ function renderBranches(){
 
 function deleteBranch(id){
   const name = D.branches[id]?.name || id;
-  if(!confirm(`Видалити філіал "${name}"?\nУсі репетитори цього філіалу втратять прив'язку!`)) return;
+  if(!confirm(`Видалити філіал "${name}"?\nРепетитори цього філіалу втратять прив\'язку!`)) return;
   delete D.branches[id];
   saveSection('branches', D.branches);
   renderBranches();
@@ -840,17 +863,41 @@ class AdminHandler(BaseHTTPRequestHandler):
         if path == "/" or path == "/admin":
             self._send(200, "text/html", ADMIN_HTML.encode("utf-8"))
         elif path == "/games":
-            # Шукаємо games.html поруч з admin.py
-            games_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "games.html")
-            try:
-                with open(games_file, "rb") as f:
+            # Пробуємо кілька можливих шляхів
+            possible = [
+                os.path.join(os.path.dirname(os.path.abspath(__file__)), "games.html"),
+                "/app/games.html",
+                os.path.join(os.getcwd(), "games.html"),
+            ]
+            found = next((p for p in possible if os.path.exists(p)), None)
+            if found:
+                with open(found, "rb") as f:
                     self._send(200, "text/html", f.read())
-            except FileNotFoundError:
-                self._send(404, "text/plain", f"games.html not found at {games_file}".encode())
+            else:
+                import glob
+                all_html = glob.glob("/app/**/*.html", recursive=True)
+                self._send(404, "text/plain",
+                    f"games.html not found. Searched: {possible}. All HTML: {all_html}".encode())
 
         elif path == "/api/data":
             d = load_data()
             self._send(200, "application/json", json.dumps(d, ensure_ascii=False).encode())
+        elif path.startswith("/api/photo_img/"):
+            import base64
+            photo_id = path.replace("/api/photo_img/", "")
+            d = load_data()
+            photo_b64 = d.get("photos", {}).get(photo_id, "")
+            if photo_b64:
+                if "," in photo_b64:
+                    header, data = photo_b64.split(",", 1)
+                    mime = header.split(":")[1].split(";")[0] if ":" in header else "image/jpeg"
+                else:
+                    data = photo_b64
+                    mime = "image/jpeg"
+                self._send(200, mime, base64.b64decode(data))
+            else:
+                self._send(404, "text/plain", b"Photo not found")
+
         elif path.startswith("/api/photo/"):
             photo_id = path.replace("/api/photo/", "")
             d = load_data()
