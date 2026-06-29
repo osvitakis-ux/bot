@@ -6,49 +6,70 @@
 <title>Ігри — Константа</title>
 <style>
 :root{--bg:#0f1117;--s:#1a1d27;--s2:#222638;--b:#2d3148;--a:#5b6ef5;--g:#22c55e;--r:#ef4444;--am:#f59e0b;--t:#e8eaf0;--tm:#8b90a7}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--t);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px}
-h1{font-size:20px;font-weight:700;margin-bottom:6px;text-align:center}
-.sub{font-size:13px;color:var(--tm);text-align:center;margin-bottom:24px}
-.menu{display:flex;flex-direction:column;gap:12px;width:100%;max-width:320px}
-.game-btn{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:18px 20px;cursor:pointer;display:flex;align-items:center;gap:14px;transition:.15s;text-align:left}
-.game-btn:hover,.game-btn:active{border-color:var(--a);background:var(--s2)}
-.game-btn .icon{font-size:32px;flex-shrink:0}
-.game-btn .info h3{font-size:15px;font-weight:600;margin-bottom:3px}
-.game-btn .info p{font-size:12px;color:var(--tm)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--t);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:16px 12px;overflow-x:hidden}
+h1{font-size:20px;font-weight:700;margin-bottom:4px;text-align:center}
+.sub{font-size:13px;color:var(--tm);text-align:center;margin-bottom:20px}
+.menu{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:360px}
+.game-btn{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:16px 12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;transition:.15s;text-align:center}
+.game-btn:active{border-color:var(--a);background:var(--s2);transform:scale(.97)}
+.game-btn .icon{font-size:32px}
+.game-btn h3{font-size:13px;font-weight:600}
+.game-btn p{font-size:11px;color:var(--tm)}
 
-/* ── SCREENS ── */
-.screen{display:none;flex-direction:column;align-items:center;width:100%;max-width:400px}
+.screen{display:none;flex-direction:column;align-items:center;width:100%;max-width:360px}
 .screen.active{display:flex}
 
-.topbar{display:flex;align-items:center;gap:10px;width:100%;margin-bottom:16px}
-.back-btn{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:7px 12px;cursor:pointer;font-size:13px;color:var(--tm)}
-.back-btn:hover{color:var(--t)}
-.score-box{margin-left:auto;background:var(--s);border:1px solid var(--b);border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600}
+.topbar{display:flex;align-items:center;gap:8px;width:100%;margin-bottom:12px}
+.back-btn{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px;color:var(--tm);flex-shrink:0}
+.back-btn:active{background:var(--s2)}
+.game-title{font-size:14px;font-weight:600;flex:1;text-align:center}
+.score-box{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;flex-shrink:0;white-space:nowrap}
 
-/* ── SNAKE ── */
-#snake-canvas{border:2px solid var(--b);border-radius:10px;background:#111318;display:block}
-.snake-controls{display:grid;grid-template-columns:repeat(3,56px);grid-template-rows:repeat(2,56px);gap:6px;margin-top:14px}
-.ctrl-btn{background:var(--s);border:1px solid var(--b);border-radius:10px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;user-select:none;transition:.1s;-webkit-user-select:none}
-.ctrl-btn:active{background:var(--a);border-color:var(--a)}
-.ctrl-empty{background:transparent;border:none}
+.game-wrap{position:relative;display:inline-block;border-radius:10px;overflow:hidden}
+canvas{display:block;border:2px solid var(--b);border-radius:10px;background:#111318;touch-action:none}
 
-/* ── MAZE ── */
-#maze-canvas{border:2px solid var(--b);border-radius:10px;background:#111318;display:block}
-.maze-controls{display:grid;grid-template-columns:repeat(3,56px);grid-template-rows:repeat(2,56px);gap:6px;margin-top:14px}
+/* speed control */
+.speed-row{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12px;color:var(--tm)}
+.speed-row input{flex:1;accent-color:var(--a)}
 
-/* ── SHOOT ── */
-#shoot-canvas{border:2px solid var(--b);border-radius:10px;background:#111318;display:block}
-.shoot-controls{display:flex;gap:12px;margin-top:14px}
-.shoot-btn{background:var(--s);border:1px solid var(--b);border-radius:10px;padding:14px 28px;font-size:18px;cursor:pointer;user-select:none;transition:.1s;-webkit-user-select:none}
-.shoot-btn:active{background:var(--a)}
+/* dpad */
+.dpad{display:grid;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(2,52px);gap:5px;margin-top:12px}
+.db{background:var(--s);border:1px solid var(--b);border-radius:10px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.1s}
+.db:active{background:var(--a);border-color:var(--a)}
+.de{background:transparent!important;border:none!important;pointer-events:none}
 
-/* ── OVERLAY ── */
-.overlay{position:absolute;inset:0;background:rgba(0,0,0,.75);display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;gap:14px}
-.overlay h2{font-size:22px;font-weight:700}
-.overlay .final-score{font-size:36px;font-weight:700;color:var(--am)}
-.overlay .restart-btn{background:var(--a);border:none;border-radius:10px;padding:12px 28px;color:#fff;font-size:15px;font-weight:700;cursor:pointer}
-.game-wrap{position:relative;display:inline-block}
+/* overlay */
+.overlay{position:absolute;inset:0;background:rgba(0,0,0,.82);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;border-radius:8px}
+.overlay h2{font-size:20px;font-weight:700}
+.overlay .fs{font-size:38px;font-weight:800;color:var(--am)}
+.overlay .fl{font-size:12px;color:var(--tm)}
+.overlay .rb{background:var(--a);border:none;border-radius:10px;padding:11px 28px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px}
+.overlay .rb:active{opacity:.85}
+
+/* tetris specific */
+#tet-wrap{display:flex;gap:10px;align-items:flex-start}
+#tet-side{display:flex;flex-direction:column;gap:8px}
+.tet-info{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:10px;font-size:12px;text-align:center}
+.tet-info .val{font-size:20px;font-weight:700;color:var(--a)}
+#next-canvas{border:1px solid var(--b);border-radius:6px;background:#111318}
+
+/* 2048 */
+#g2048-board{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:var(--b);border-radius:10px;padding:6px;width:300px;height:300px}
+.tile{border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;transition:all .1s;background:var(--s2);color:var(--tm)}
+.tile[data-v="2"]{background:#3b4fd4;color:#fff}
+.tile[data-v="4"]{background:#4f62e8;color:#fff}
+.tile[data-v="8"]{background:#f59e0b;color:#fff}
+.tile[data-v="16"]{background:#f97316;color:#fff}
+.tile[data-v="32"]{background:#ef4444;color:#fff}
+.tile[data-v="64"]{background:#dc2626;color:#fff}
+.tile[data-v="128"]{background:#22c55e;color:#fff;font-size:15px}
+.tile[data-v="256"]{background:#16a34a;color:#fff;font-size:14px}
+.tile[data-v="512"]{background:#a855f7;color:#fff;font-size:13px}
+.tile[data-v="1024"]{background:#7c3aed;color:#fff;font-size:12px}
+.tile[data-v="2048"]{background:#f59e0b;color:#fff;font-size:11px;animation:pop .3s}
+@keyframes pop{0%{transform:scale(1.2)}100%{transform:scale(1)}}
+.swipe-hint{font-size:11px;color:var(--tm);margin-top:8px;text-align:center}
 </style>
 </head>
 <body>
@@ -58,17 +79,23 @@ h1{font-size:20px;font-weight:700;margin-bottom:6px;text-align:center}
   <h1>🎮 Ігри</h1>
   <p class="sub">Репетиторський центр «Константа»</p>
   <div class="menu">
-    <div class="game-btn" onclick="startGame('snake')">
-      <span class="icon">🐍</span>
-      <div class="info"><h3>Змійка</h3><p>Збирай їжу, не врізайся в стіни</p></div>
+    <div class="game-btn" onclick="start('snake')">
+      <span class="icon">🐍</span><h3>Змійка</h3><p>Збирай яблука</p>
     </div>
-    <div class="game-btn" onclick="startGame('maze')">
-      <span class="icon">🌀</span>
-      <div class="info"><h3>Лабіринт</h3><p>Знайди вихід якомога швидше</p></div>
+    <div class="game-btn" onclick="start('maze')">
+      <span class="icon">🌀</span><h3>Лабіринт</h3><p>Знайди вихід</p>
     </div>
-    <div class="game-btn" onclick="startGame('shoot')">
-      <span class="icon">🎯</span>
-      <div class="info"><h3>Влучи в ціль</h3><p>Збивай мішені на швидкість</p></div>
+    <div class="game-btn" onclick="start('shoot')">
+      <span class="icon">🎯</span><h3>Мішені</h3><p>Влучи в ціль</p>
+    </div>
+    <div class="game-btn" onclick="start('tetris')">
+      <span class="icon">🧱</span><h3>Тетріс</h3><p>Заповни рядки</p>
+    </div>
+    <div class="game-btn" onclick="start('g2048')">
+      <span class="icon">🔢</span><h3>2048</h3><p>З'єднай плитки</p>
+    </div>
+    <div class="game-btn" onclick="start('memory')">
+      <span class="icon">🃏</span><h3>Пам'ять</h3><p>Знайди пари</p>
     </div>
   </div>
 </div>
@@ -76,368 +103,450 @@ h1{font-size:20px;font-weight:700;margin-bottom:6px;text-align:center}
 <!-- SNAKE -->
 <div class="screen" id="screen-snake">
   <div class="topbar">
-    <button class="back-btn" onclick="goMenu()">◀ Назад</button>
-    <span style="font-size:14px;font-weight:600">🐍 Змійка</span>
-    <div class="score-box">🍎 <span id="snake-score">0</span></div>
+    <button class="back-btn" onclick="goMenu()">◀</button>
+    <span class="game-title">🐍 Змійка</span>
+    <div class="score-box">🍎 <span id="sn-sc">0</span></div>
   </div>
   <div class="game-wrap">
-    <canvas id="snake-canvas" width="300" height="300"></canvas>
-    <div class="overlay" id="snake-overlay" style="display:none">
+    <canvas id="snake-c" width="300" height="300"></canvas>
+    <div class="overlay" id="snake-ov" style="display:none">
       <h2>Гра закінчена!</h2>
-      <div class="final-score" id="snake-final">0</div>
-      <div style="font-size:13px;color:var(--tm)">очок</div>
-      <button class="restart-btn" onclick="initSnake()">🔄 Ще раз</button>
+      <div class="fs" id="sn-fin">0</div><div class="fl">очок</div>
+      <button class="rb" onclick="initSnake()">🔄 Ще раз</button>
     </div>
   </div>
-  <div class="snake-controls">
-    <div class="ctrl-empty"></div>
-    <div class="ctrl-btn" ontouchstart="snakeDir(0,-1)" onclick="snakeDir(0,-1)">▲</div>
-    <div class="ctrl-empty"></div>
-    <div class="ctrl-btn" ontouchstart="snakeDir(-1,0)" onclick="snakeDir(-1,0)">◀</div>
-    <div class="ctrl-btn" ontouchstart="snakeDir(0,1)" onclick="snakeDir(0,1)">▼</div>
-    <div class="ctrl-btn" ontouchstart="snakeDir(1,0)" onclick="snakeDir(1,0)">▶</div>
+  <div class="speed-row">
+    🐢 <input type="range" id="sn-speed" min="1" max="5" value="2"> 🐇
+    <span id="sn-spd-lbl">Нормально</span>
+  </div>
+  <div class="dpad">
+    <div class="de"></div><div class="db" ontouchstart="sd(0,-1)" onclick="sd(0,-1)">▲</div><div class="de"></div>
+    <div class="db" ontouchstart="sd(-1,0)" onclick="sd(-1,0)">◀</div>
+    <div class="db" ontouchstart="sd(0,1)" onclick="sd(0,1)">▼</div>
+    <div class="db" ontouchstart="sd(1,0)" onclick="sd(1,0)">▶</div>
   </div>
 </div>
 
 <!-- MAZE -->
 <div class="screen" id="screen-maze">
   <div class="topbar">
-    <button class="back-btn" onclick="goMenu()">◀ Назад</button>
-    <span style="font-size:14px;font-weight:600">🌀 Лабіринт</span>
-    <div class="score-box">⏱ <span id="maze-time">0</span>с</div>
+    <button class="back-btn" onclick="goMenu()">◀</button>
+    <span class="game-title">🌀 Лабіринт</span>
+    <div class="score-box">⏱ <span id="mz-t">0</span>с</div>
   </div>
   <div class="game-wrap">
-    <canvas id="maze-canvas" width="300" height="300"></canvas>
-    <div class="overlay" id="maze-overlay" style="display:none">
+    <canvas id="maze-c" width="300" height="300"></canvas>
+    <div class="overlay" id="maze-ov" style="display:none">
       <h2>🎉 Вихід знайдено!</h2>
-      <div class="final-score" id="maze-final">0</div>
-      <div style="font-size:13px;color:var(--tm)">секунд</div>
-      <button class="restart-btn" onclick="initMaze()">🔄 Новий лабіринт</button>
+      <div class="fs" id="mz-fin">0</div><div class="fl">секунд</div>
+      <button class="rb" onclick="initMaze()">🔄 Новий</button>
     </div>
   </div>
-  <div class="maze-controls">
-    <div class="ctrl-empty"></div>
-    <div class="ctrl-btn" ontouchstart="mazeMove(0,-1)" onclick="mazeMove(0,-1)">▲</div>
-    <div class="ctrl-empty"></div>
-    <div class="ctrl-btn" ontouchstart="mazeMove(-1,0)" onclick="mazeMove(-1,0)">◀</div>
-    <div class="ctrl-btn" ontouchstart="mazeMove(0,1)" onclick="mazeMove(0,1)">▼</div>
-    <div class="ctrl-btn" ontouchstart="mazeMove(1,0)" onclick="mazeMove(1,0)">▶</div>
+  <div class="dpad" style="margin-top:12px">
+    <div class="de"></div><div class="db" ontouchstart="mm(0,-1)" onclick="mm(0,-1)">▲</div><div class="de"></div>
+    <div class="db" ontouchstart="mm(-1,0)" onclick="mm(-1,0)">◀</div>
+    <div class="db" ontouchstart="mm(0,1)" onclick="mm(0,1)">▼</div>
+    <div class="db" ontouchstart="mm(1,0)" onclick="mm(1,0)">▶</div>
   </div>
 </div>
 
 <!-- SHOOT -->
 <div class="screen" id="screen-shoot">
   <div class="topbar">
-    <button class="back-btn" onclick="goMenu()">◀ Назад</button>
-    <span style="font-size:14px;font-weight:600">🎯 Влучи в ціль</span>
-    <div class="score-box">🎯 <span id="shoot-score">0</span> | ⏱ <span id="shoot-time">30</span>с</div>
+    <button class="back-btn" onclick="goMenu()">◀</button>
+    <span class="game-title">🎯 Мішені</span>
+    <div class="score-box">🎯<span id="sh-sc">0</span> ⏱<span id="sh-t">30</span>с</div>
   </div>
   <div class="game-wrap">
-    <canvas id="shoot-canvas" width="300" height="300"></canvas>
-    <div class="overlay" id="shoot-overlay" style="display:none">
+    <canvas id="shoot-c" width="300" height="300"></canvas>
+    <div class="overlay" id="shoot-ov" style="display:none">
       <h2>Час вийшов!</h2>
-      <div class="final-score" id="shoot-final">0</div>
-      <div style="font-size:13px;color:var(--tm)">влучань</div>
-      <button class="restart-btn" onclick="initShoot()">🔄 Ще раз</button>
+      <div class="fs" id="sh-fin">0</div><div class="fl">влучань</div>
+      <button class="rb" onclick="initShoot()">🔄 Ще раз</button>
     </div>
   </div>
 </div>
 
+<!-- TETRIS -->
+<div class="screen" id="screen-tetris">
+  <div class="topbar">
+    <button class="back-btn" onclick="goMenu()">◀</button>
+    <span class="game-title">🧱 Тетріс</span>
+    <div class="score-box">★ <span id="tet-sc">0</span></div>
+  </div>
+  <div id="tet-wrap">
+    <div class="game-wrap">
+      <canvas id="tet-c" width="180" height="360"></canvas>
+      <div class="overlay" id="tet-ov" style="display:none">
+        <h2>Гра закінчена!</h2>
+        <div class="fs" id="tet-fin">0</div><div class="fl">очок</div>
+        <button class="rb" onclick="initTetris()">🔄 Ще раз</button>
+      </div>
+    </div>
+    <div id="tet-side">
+      <div class="tet-info">Далі<br><canvas id="next-c" width="60" height="60"></canvas></div>
+      <div class="tet-info">Рівень<br><div class="val" id="tet-lv">1</div></div>
+      <div class="tet-info">Рядки<br><div class="val" id="tet-ln">0</div></div>
+    </div>
+  </div>
+  <div class="dpad" style="margin-top:12px">
+    <div class="db" ontouchstart="tetMove(-1)" onclick="tetMove(-1)">◀</div>
+    <div class="db" ontouchstart="tetRotate()" onclick="tetRotate()">🔄</div>
+    <div class="db" ontouchstart="tetMove(1)" onclick="tetMove(1)">▶</div>
+    <div class="de"></div>
+    <div class="db" ontouchstart="tetDrop()" onclick="tetDrop()" style="font-size:14px">⬇ Впасти</div>
+    <div class="de"></div>
+  </div>
+</div>
+
+<!-- 2048 -->
+<div class="screen" id="screen-g2048">
+  <div class="topbar">
+    <button class="back-btn" onclick="goMenu()">◀</button>
+    <span class="game-title">🔢 2048</span>
+    <div class="score-box">★ <span id="g2-sc">0</span></div>
+  </div>
+  <div id="g2048-board"></div>
+  <div class="swipe-hint">Свайпайте або використовуйте стрілки клавіатури</div>
+  <div class="overlay" id="g2048-ov" style="display:none;position:fixed;border-radius:0">
+    <h2 id="g2-title">Гра закінчена!</h2>
+    <div class="fs" id="g2-fin">0</div><div class="fl">очок</div>
+    <button class="rb" onclick="init2048()">🔄 Ще раз</button>
+  </div>
+</div>
+
+<!-- MEMORY -->
+<div class="screen" id="screen-memory">
+  <div class="topbar">
+    <button class="back-btn" onclick="goMenu()">◀</button>
+    <span class="game-title">🃏 Пам'ять</span>
+    <div class="score-box">⏱<span id="mem-t">0</span>с | 🃏<span id="mem-mv">0</span></div>
+  </div>
+  <div id="mem-board" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:300px"></div>
+  <div class="overlay" id="mem-ov" style="display:none;position:fixed;border-radius:0">
+    <h2>🎉 Молодець!</h2>
+    <div class="fs" id="mem-fin">0</div><div class="fl">секунд | <span id="mem-mv2">0</span> ходів</div>
+    <button class="rb" onclick="initMemory()">🔄 Ще раз</button>
+  </div>
+</div>
+
 <script>
-// ══════════════════════════════════════
-// NAVIGATION
-// ══════════════════════════════════════
-let activeGame = null;
+// ══════════ NAV ══════════
+let cur=null;
+const timers=[];
+function stopAll(){ timers.forEach(t=>{ clearInterval(t.id); clearTimeout(t.id); }); timers.length=0; }
+function addTimer(id){ timers.push({id}); return id; }
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('screen-'+id).classList.add('active'); }
+function start(name){ stopAll(); cur=name; show(name); ({snake:initSnake,maze:initMaze,shoot:initShoot,tetris:initTetris,g2048:init2048,memory:initMemory})[name](); }
+function goMenu(){ stopAll(); cur=null; show('menu'); }
 
-function showScreen(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById('screen-'+id).classList.add('active');
-}
+// ══════════ SNAKE ══════════
+const SC=document.getElementById('snake-c'), SX=SC.getContext('2d');
+const CELL=15,COLS=20,ROWS=20;
+const SPD_LABELS=['Дуже повільно','Повільно','Нормально','Швидко','Дуже швидко'];
+const SPD_MS=[350,250,180,120,80];
+let sn,sDir,sNext,sFood,sScore,sRun;
 
-function startGame(name){
-  activeGame = name;
-  showScreen(name);
-  if(name==='snake') initSnake();
-  if(name==='maze')  initMaze();
-  if(name==='shoot') initShoot();
-}
-
-function goMenu(){
-  stopAll();
-  showScreen('menu');
-}
-
-function stopAll(){
-  clearInterval(snakeTimer);
-  clearInterval(mazeTimer);
-  clearInterval(shootTimer);
-}
-
-// ══════════════════════════════════════
-// 🐍 SNAKE
-// ══════════════════════════════════════
-const SC = document.getElementById('snake-canvas');
-const SX = SC.getContext('2d');
-const CELL = 15, COLS = 20, ROWS = 20;
-let snake, sDir, sNextDir, sFood, sScore, snakeTimer, sRunning;
+document.getElementById('sn-speed').addEventListener('input',function(){
+  document.getElementById('sn-spd-lbl').textContent=SPD_LABELS[this.value-1];
+  if(sRun){ stopAll(); addTimer(setInterval(snakeStep, SPD_MS[this.value-1])); }
+});
 
 function initSnake(){
-  snake = [{x:10,y:10},{x:9,y:10},{x:8,y:10}];
-  sDir = {x:1,y:0};
-  sNextDir = {x:1,y:0};
-  sFood = randomFood();
-  sScore = 0;
-  sRunning = true;
-  document.getElementById('snake-score').textContent = 0;
-  document.getElementById('snake-overlay').style.display = 'none';
-  clearInterval(snakeTimer);
-  snakeTimer = setInterval(snakeStep, 150);
-}
-
-function randomFood(){
-  let f;
-  do { f={x:Math.floor(Math.random()*COLS),y:Math.floor(Math.random()*ROWS)}; }
-  while(snake && snake.some(s=>s.x===f.x&&s.y===f.y));
-  return f;
-}
-
-function snakeDir(x,y){
-  if(!sRunning) return;
-  if(x!==0&&sDir.x!==0) return;
-  if(y!==0&&sDir.y!==0) return;
-  sNextDir={x,y};
-}
-
-function snakeStep(){
-  sDir = sNextDir;
-  const head={x:snake[0].x+sDir.x, y:snake[0].y+sDir.y};
-  if(head.x<0||head.x>=COLS||head.y<0||head.y>=ROWS||snake.some(s=>s.x===head.x&&s.y===head.y)){
-    sRunning=false;
-    clearInterval(snakeTimer);
-    document.getElementById('snake-final').textContent=sScore;
-    document.getElementById('snake-overlay').style.display='flex';
-    return;
-  }
-  snake.unshift(head);
-  if(head.x===sFood.x&&head.y===sFood.y){
-    sScore++;
-    document.getElementById('snake-score').textContent=sScore;
-    sFood=randomFood();
-  } else snake.pop();
+  sn=[{x:10,y:10},{x:9,y:10},{x:8,y:10}];
+  sDir={x:1,y:0}; sNext={x:1,y:0};
+  sFood=rndFood(); sScore=0; sRun=true;
+  document.getElementById('sn-sc').textContent=0;
+  document.getElementById('snake-ov').style.display='none';
+  stopAll();
+  const spd=SPD_MS[document.getElementById('sn-speed').value-1];
+  addTimer(setInterval(snakeStep, spd));
   drawSnake();
 }
-
+function rndFood(){ let f; do{f={x:~~(Math.random()*COLS),y:~~(Math.random()*ROWS)}}while(sn.some(s=>s.x===f.x&&s.y===f.y)); return f; }
+function sd(x,y){ if(!sRun)return; if(x&&sDir.x)return; if(y&&sDir.y)return; sNext={x,y}; }
+function snakeStep(){
+  sDir=sNext;
+  const h={x:sn[0].x+sDir.x,y:sn[0].y+sDir.y};
+  if(h.x<0||h.x>=COLS||h.y<0||h.y>=ROWS||sn.some(s=>s.x===h.x&&s.y===h.y)){
+    sRun=false; stopAll();
+    document.getElementById('sn-fin').textContent=sScore;
+    document.getElementById('snake-ov').style.display='flex'; return;
+  }
+  sn.unshift(h);
+  if(h.x===sFood.x&&h.y===sFood.y){ sScore++; document.getElementById('sn-sc').textContent=sScore; sFood=rndFood(); }
+  else sn.pop();
+  drawSnake();
+}
 function drawSnake(){
   SX.fillStyle='#111318'; SX.fillRect(0,0,300,300);
-  // grid
-  SX.strokeStyle='#1a1d27'; SX.lineWidth=0.5;
+  SX.strokeStyle='#1a1d27'; SX.lineWidth=.5;
   for(let i=0;i<=COLS;i++){SX.beginPath();SX.moveTo(i*CELL,0);SX.lineTo(i*CELL,300);SX.stroke();}
   for(let i=0;i<=ROWS;i++){SX.beginPath();SX.moveTo(0,i*CELL);SX.lineTo(300,i*CELL);SX.stroke();}
-  // food
   SX.fillStyle='#ef4444';
   SX.beginPath();SX.arc(sFood.x*CELL+CELL/2,sFood.y*CELL+CELL/2,CELL/2-1,0,Math.PI*2);SX.fill();
-  // snake
-  snake.forEach((s,i)=>{
-    SX.fillStyle = i===0?'#22c55e':'#16a34a';
-    SX.beginPath();SX.roundRect(s.x*CELL+1,s.y*CELL+1,CELL-2,CELL-2,3);SX.fill();
-  });
+  sn.forEach((s,i)=>{ SX.fillStyle=i===0?'#22c55e':'#16a34a'; SX.beginPath();SX.roundRect(s.x*CELL+1,s.y*CELL+1,CELL-2,CELL-2,3);SX.fill(); });
 }
 
-// keyboard
-document.addEventListener('keydown',e=>{
-  if(activeGame!=='snake') return;
-  if(e.key==='ArrowUp')    snakeDir(0,-1);
-  if(e.key==='ArrowDown')  snakeDir(0,1);
-  if(e.key==='ArrowLeft')  snakeDir(-1,0);
-  if(e.key==='ArrowRight') snakeDir(1,0);
-});
-
-// ══════════════════════════════════════
-// 🌀 MAZE
-// ══════════════════════════════════════
-const MC = document.getElementById('maze-canvas');
-const MX = MC.getContext('2d');
-const MSIZE = 15, MCOLS = 19, MROWS = 19;
-let maze, player, mazeTimer, mazeSeconds, mazeDone;
-
+// ══════════ MAZE ══════════
+const MC=document.getElementById('maze-c'),MX=MC.getContext('2d');
+const MW=19,MH=19;
+let mz,mp,mSec,mDone;
 function initMaze(){
-  mazeDone = false;
-  mazeSeconds = 0;
-  document.getElementById('maze-time').textContent = 0;
-  document.getElementById('maze-overlay').style.display = 'none';
-  maze = generateMaze(MCOLS, MROWS);
-  player = {x:1, y:1};
-  clearInterval(mazeTimer);
-  mazeTimer = setInterval(()=>{
-    if(!mazeDone){ mazeSeconds++; document.getElementById('maze-time').textContent=mazeSeconds; }
-  }, 1000);
+  mDone=false; mSec=0;
+  document.getElementById('mz-t').textContent=0;
+  document.getElementById('maze-ov').style.display='none';
+  mz=genMaze(MW,MH); mp={x:1,y:1};
+  stopAll();
+  addTimer(setInterval(()=>{ if(!mDone){mSec++;document.getElementById('mz-t').textContent=mSec;} },1000));
   drawMaze();
 }
-
-function generateMaze(w, h){
-  const grid = Array.from({length:h},()=>Array(w).fill(1));
+function genMaze(w,h){
+  const g=Array.from({length:h},()=>Array(w).fill(1));
   function carve(x,y){
-    const dirs=[[0,-2],[0,2],[-2,0],[2,0]].sort(()=>Math.random()-.5);
-    for(const[dx,dy] of dirs){
-      const nx=x+dx, ny=y+dy;
-      if(nx>0&&nx<w-1&&ny>0&&ny<h-1&&grid[ny][nx]===1){
-        grid[y+dy/2][x+dx/2]=0;
-        grid[ny][nx]=0;
-        carve(nx,ny);
-      }
-    }
+    [[0,-2],[0,2],[-2,0],[2,0]].sort(()=>Math.random()-.5).forEach(([dx,dy])=>{
+      const nx=x+dx,ny=y+dy;
+      if(nx>0&&nx<w-1&&ny>0&&ny<h-1&&g[ny][nx]===1){g[y+dy/2][x+dx/2]=0;g[ny][nx]=0;carve(nx,ny);}
+    });
   }
-  grid[1][1]=0;
-  carve(1,1);
-  grid[h-2][w-2]=0; // exit
-  return grid;
+  g[1][1]=0; carve(1,1); g[h-2][w-2]=0; return g;
 }
-
-function mazeMove(dx,dy){
-  if(mazeDone) return;
-  const nx=player.x+dx, ny=player.y+dy;
-  if(nx<0||nx>=MCOLS||ny<0||ny>=MROWS) return;
-  if(maze[ny][nx]===1) return;
-  player={x:nx,y:ny};
-  drawMaze();
-  if(nx===MCOLS-2&&ny===MROWS-2){
-    mazeDone=true;
-    clearInterval(mazeTimer);
-    document.getElementById('maze-final').textContent=mazeSeconds;
-    setTimeout(()=>document.getElementById('maze-overlay').style.display='flex',300);
-  }
+function mm(dx,dy){
+  if(mDone)return;
+  const nx=mp.x+dx,ny=mp.y+dy;
+  if(nx<0||nx>=MW||ny<0||ny>=MH||mz[ny][nx]===1)return;
+  mp={x:nx,y:ny}; drawMaze();
+  if(nx===MW-2&&ny===MH-2){ mDone=true; stopAll(); document.getElementById('mz-fin').textContent=mSec; setTimeout(()=>document.getElementById('maze-ov').style.display='flex',300); }
 }
-
 function drawMaze(){
-  const cs = 300/MCOLS;
-  MX.fillStyle='#111318'; MX.fillRect(0,0,300,300);
-  for(let y=0;y<MROWS;y++){
-    for(let x=0;x<MCOLS;x++){
-      if(maze[y][x]===1){
-        MX.fillStyle='#2d3148';
-        MX.fillRect(x*cs,y*cs,cs,cs);
-      }
-    }
-  }
-  // exit
-  MX.fillStyle='#f59e0b';
-  MX.fillRect((MCOLS-2)*cs+2,(MROWS-2)*cs+2,cs-4,cs-4);
-  MX.fillStyle='#111';MX.font=`${cs*.7}px sans-serif`;MX.textAlign='center';MX.textBaseline='middle';
-  MX.fillText('🚪',(MCOLS-2)*cs+cs/2,(MROWS-2)*cs+cs/2);
-  // player
-  MX.fillStyle='#5b6ef5';
-  MX.beginPath();MX.arc(player.x*cs+cs/2,player.y*cs+cs/2,cs/2-1,0,Math.PI*2);MX.fill();
-  MX.fillStyle='#fff';MX.font=`${cs*.65}px sans-serif`;
-  MX.fillText('😊',player.x*cs+cs/2,player.y*cs+cs/2+1);
+  const cs=300/MW;
+  MX.fillStyle='#111318';MX.fillRect(0,0,300,300);
+  for(let y=0;y<MH;y++) for(let x=0;x<MW;x++) if(mz[y][x]===1){MX.fillStyle='#2d3148';MX.fillRect(x*cs,y*cs,cs,cs);}
+  MX.font=`${cs*.75}px sans-serif`;MX.textAlign='center';MX.textBaseline='middle';
+  MX.fillText('🚪',(MW-2)*cs+cs/2,(MH-2)*cs+cs/2);
+  MX.fillText('😊',mp.x*cs+cs/2,mp.y*cs+cs/2);
 }
 
-document.addEventListener('keydown',e=>{
-  if(activeGame!=='maze') return;
-  if(e.key==='ArrowUp')    mazeMove(0,-1);
-  if(e.key==='ArrowDown')  mazeMove(0,1);
-  if(e.key==='ArrowLeft')  mazeMove(-1,0);
-  if(e.key==='ArrowRight') mazeMove(1,0);
-  e.preventDefault();
-});
-
-// ══════════════════════════════════════
-// 🎯 ВЛУЧИ В ЦІЛЬ
-// ══════════════════════════════════════
-const TC = document.getElementById('shoot-canvas');
-const TX = TC.getContext('2d');
-let targets, shootScore, shootTimeLeft, shootTimer, shootRunning;
-
+// ══════════ SHOOT ══════════
+const TC=document.getElementById('shoot-c'),TX=TC.getContext('2d');
+let tgts,shSc,shTime,shRun;
 function initShoot(){
-  targets = [];
-  shootScore = 0;
-  shootTimeLeft = 30;
-  shootRunning = true;
-  document.getElementById('shoot-score').textContent = 0;
-  document.getElementById('shoot-time').textContent = 30;
-  document.getElementById('shoot-overlay').style.display = 'none';
-  clearInterval(shootTimer);
-  spawnTarget();
-  shootTimer = setInterval(()=>{
-    if(!shootRunning) return;
-    shootTimeLeft--;
-    document.getElementById('shoot-time').textContent = shootTimeLeft;
-    // move targets
-    targets.forEach(t=>{
-      t.x += t.vx; t.y += t.vy;
-      if(t.x<t.r||t.x>300-t.r) t.vx*=-1;
-      if(t.y<t.r||t.y>300-t.r) t.vy*=-1;
-      t.life--;
-    });
-    targets = targets.filter(t=>t.life>0);
-    if(targets.length===0) spawnTarget();
-    drawShoot();
-    if(shootTimeLeft<=0){
-      shootRunning=false;
-      clearInterval(shootTimer);
-      document.getElementById('shoot-final').textContent=shootScore;
-      document.getElementById('shoot-overlay').style.display='flex';
-    }
-  },1000);
-  // fast redraw
-  function loop(){ if(activeGame==='shoot'&&shootRunning){ drawShoot(); requestAnimationFrame(loop); } }
-  requestAnimationFrame(loop);
+  tgts=[];shSc=0;shTime=30;shRun=true;
+  document.getElementById('sh-sc').textContent=0;
+  document.getElementById('sh-t').textContent=30;
+  document.getElementById('shoot-ov').style.display='none';
+  stopAll();
+  spawnTgt();
+  addTimer(setInterval(()=>{
+    if(!shRun)return;
+    shTime--; document.getElementById('sh-t').textContent=shTime;
+    tgts.forEach(t=>{t.x+=t.vx;t.y+=t.vy;if(t.x<t.r||t.x>300-t.r)t.vx*=-1;if(t.y<t.r||t.y>300-t.r)t.vy*=-1;t.life--;});
+    tgts=tgts.filter(t=>t.life>0);
+    if(!tgts.length)spawnTgt();
+    if(shTime<=0){shRun=false;stopAll();document.getElementById('sh-fin').textContent=shSc;document.getElementById('shoot-ov').style.display='flex';}
+  },1000));
+  function raf(){if(cur==='shoot'&&shRun){drawShoot();requestAnimationFrame(raf);}} requestAnimationFrame(raf);
+}
+function spawnTgt(){
+  const n=Math.min(1+~~(shSc/5),4);
+  for(let i=tgts.length;i<n;i++){
+    const r=18+Math.random()*18;
+    tgts.push({x:r+Math.random()*(300-2*r),y:r+Math.random()*(300-2*r),r,vx:(Math.random()-.5)*4,vy:(Math.random()-.5)*4,life:8+~~(Math.random()*5),color:['#ef4444','#f59e0b','#22c55e','#5b6ef5'][~~(Math.random()*4)]});
+  }
+}
+function drawShoot(){
+  TX.fillStyle='#111318';TX.fillRect(0,0,300,300);
+  tgts.forEach(t=>{
+    [t.r,t.r*.65,t.r*.35].forEach((r,i)=>{TX.fillStyle=i%2===0?t.color:'#fff';TX.beginPath();TX.arc(t.x,t.y,r,0,Math.PI*2);TX.fill();});
+    TX.fillStyle='#111';TX.beginPath();TX.arc(t.x,t.y,t.r*.12,0,Math.PI*2);TX.fill();
+  });
+}
+function shootHit(mx,my){
+  if(!shRun)return;
+  tgts=tgts.filter(t=>{if(Math.hypot(mx-t.x,my-t.y)<t.r){shSc++;document.getElementById('sh-sc').textContent=shSc;return false;}return true;});
+  if(!tgts.length)spawnTgt();
+}
+TC.addEventListener('click',e=>{const r=TC.getBoundingClientRect();shootHit((e.clientX-r.left)*(300/r.width),(e.clientY-r.top)*(300/r.height));});
+TC.addEventListener('touchstart',e=>{e.preventDefault();const r=TC.getBoundingClientRect(),t=e.touches[0];shootHit((t.clientX-r.left)*(300/r.width),(t.clientY-r.top)*(300/r.height));},{passive:false});
+
+// ══════════ TETRIS ══════════
+const TTC=document.getElementById('tet-c'),TTX=TTC.getContext('2d');
+const NC=document.getElementById('next-c'),NX=NC.getContext('2d');
+const TW=9,TH=18,TS=20;
+const PIECES=[
+  {s:[[1,1,1,1]],c:'#22d3ee'},
+  {s:[[1,1],[1,1]],c:'#f59e0b'},
+  {s:[[1,1,1],[0,1,0]],c:'#a855f7'},
+  {s:[[1,1,1],[1,0,0]],c:'#3b82f6'},
+  {s:[[1,1,1],[0,0,1]],c:'#f97316'},
+  {s:[[1,1,0],[0,1,1]],c:'#22c55e'},
+  {s:[[0,1,1],[1,1,0]],c:'#ef4444'},
+];
+let tBoard,tPiece,tNext,tX,tY,tSc,tLv,tLn,tRun2;
+function rndPiece(){const p=PIECES[~~(Math.random()*PIECES.length)];return{s:p.s.map(r=>[...r]),c:p.c};}
+function initTetris(){
+  tBoard=Array.from({length:TH},()=>Array(TW).fill(0));
+  tPiece=rndPiece();tNext=rndPiece();tX=~~(TW/2)-1;tY=0;tSc=0;tLv=1;tLn=0;tRun2=true;
+  document.getElementById('tet-sc').textContent=0;
+  document.getElementById('tet-lv').textContent=1;
+  document.getElementById('tet-ln').textContent=0;
+  document.getElementById('tet-ov').style.display='none';
+  stopAll();
+  addTimer(setInterval(tetTick,Math.max(100,500-tLv*40)));
+  drawTet();
+}
+function tetCollide(s,x,y){return s.some((row,dy)=>row.some((v,dx)=>v&&(tBoard[y+dy]?.[x+dx])!==0));}
+function tetPlace(){
+  tPiece.s.forEach((row,dy)=>row.forEach((v,dx)=>{if(v)tBoard[tY+dy][tX+dx]=tPiece.c;}));
+  let cleared=0;
+  for(let y=TH-1;y>=0;){if(tBoard[y].every(c=>c)){tBoard.splice(y,1);tBoard.unshift(Array(TW).fill(0));cleared++;}else y--;}
+  tLn+=cleared;tSc+=cleared*100*tLv;tLv=1+~~(tLn/10);
+  document.getElementById('tet-sc').textContent=tSc;
+  document.getElementById('tet-lv').textContent=tLv;
+  document.getElementById('tet-ln').textContent=tLn;
+  tPiece=tNext;tNext=rndPiece();tX=~~(TW/2)-1;tY=0;
+  if(tetCollide(tPiece.s,tX,tY)){tRun2=false;stopAll();document.getElementById('tet-fin').textContent=tSc;document.getElementById('tet-ov').style.display='flex';}
+  else{stopAll();addTimer(setInterval(tetTick,Math.max(100,500-tLv*40)));}
+}
+function tetTick(){if(!tRun2)return;if(tetCollide(tPiece.s,tX,tY+1))tetPlace();else{tY++;drawTet();}}
+function tetMove(d){if(!tRun2)return;if(!tetCollide(tPiece.s,tX+d,tY)){tX+=d;drawTet();}}
+function tetRotate(){
+  if(!tRun2)return;
+  const r=tPiece.s[0].map((_,i)=>tPiece.s.map(row=>row[i]).reverse());
+  if(!tetCollide(r,tX,tY)){tPiece.s=r;drawTet();}
+}
+function tetDrop(){if(!tRun2)return;while(!tetCollide(tPiece.s,tX,tY+1))tY++;tetPlace();drawTet();}
+function drawTet(){
+  TTX.fillStyle='#111318';TTX.fillRect(0,0,TW*TS,TH*TS);
+  TTX.strokeStyle='#1a1d2740';TTX.lineWidth=.5;
+  for(let x=0;x<=TW;x++){TTX.beginPath();TTX.moveTo(x*TS,0);TTX.lineTo(x*TS,TH*TS);TTX.stroke();}
+  for(let y=0;y<=TH;y++){TTX.beginPath();TTX.moveTo(0,y*TS);TTX.lineTo(TW*TS,y*TS);TTX.stroke();}
+  tBoard.forEach((row,y)=>row.forEach((c,x)=>{if(c){TTX.fillStyle=c;TTX.fillRect(x*TS+1,y*TS+1,TS-2,TS-2);}}));
+  // ghost
+  let gy=tY;while(!tetCollide(tPiece.s,tX,gy+1))gy++;
+  tPiece.s.forEach((row,dy)=>row.forEach((v,dx)=>{if(v){TTX.fillStyle='rgba(255,255,255,.1)';TTX.fillRect((tX+dx)*TS+1,(gy+dy)*TS+1,TS-2,TS-2);}}));
+  // piece
+  tPiece.s.forEach((row,dy)=>row.forEach((v,dx)=>{if(v){TTX.fillStyle=tPiece.c;TTX.fillRect((tX+dx)*TS+1,(tY+dy)*TS+1,TS-2,TS-2);}}));
+  // next
+  NX.fillStyle='#111318';NX.fillRect(0,0,60,60);
+  const ns=10,ox=~~((4-tNext.s[0].length)/2)*ns+5,oy=~~((4-tNext.s.length)/2)*ns+5;
+  tNext.s.forEach((row,dy)=>row.forEach((v,dx)=>{if(v){NX.fillStyle=tNext.c;NX.fillRect(ox+dx*ns+1,oy+dy*ns+1,ns-2,ns-2);}}));
 }
 
-function spawnTarget(){
-  const count = Math.min(1+Math.floor(shootScore/5), 4);
-  for(let i=targets.length;i<count;i++){
-    const r = 20+Math.random()*20;
-    targets.push({
-      x: r+Math.random()*(300-2*r), y: r+Math.random()*(300-2*r),
-      r, vx:(Math.random()-.5)*3, vy:(Math.random()-.5)*3,
-      life: 8+Math.floor(Math.random()*5),
-      color: ['#ef4444','#f59e0b','#22c55e','#5b6ef5'][Math.floor(Math.random()*4)]
-    });
+// ══════════ 2048 ══════════
+let g2Board,g2Sc,g2Best=0;
+function init2048(){
+  g2Board=Array.from({length:4},()=>Array(4).fill(0));
+  g2Sc=0;document.getElementById('g2-sc').textContent=0;
+  document.getElementById('g2048-ov').style.display='none';
+  add2048Tile();add2048Tile();draw2048();
+}
+function add2048Tile(){
+  const empty=[];
+  for(let r=0;r<4;r++)for(let c=0;c<4;c++)if(!g2Board[r][c])empty.push({r,c});
+  if(!empty.length)return;
+  const {r,c}=empty[~~(Math.random()*empty.length)];
+  g2Board[r][c]=Math.random()<.9?2:4;
+}
+function draw2048(){
+  const board=document.getElementById('g2048-board');
+  board.innerHTML='';
+  for(let r=0;r<4;r++)for(let c=0;c<4;c++){
+    const d=document.createElement('div');
+    d.className='tile';
+    const v=g2Board[r][c];
+    if(v){d.textContent=v;d.dataset.v=v;}
+    board.appendChild(d);
+  }
+}
+function move2048(dir){
+  let moved=false;
+  const rotate=m=>m[0].map((_,i)=>m.map(r=>r[i]).reverse());
+  let b=g2Board.map(r=>[...r]);
+  const slideRow=row=>{
+    let r=row.filter(v=>v);
+    for(let i=0;i<r.length-1;i++){if(r[i]===r[i+1]){r[i]*=2;g2Sc+=r[i];r.splice(i+1,1);}}
+    while(r.length<4)r.push(0);
+    return r;
+  };
+  if(dir==='left'){b=b.map(slideRow);}
+  else if(dir==='right'){b=b.map(r=>slideRow([...r].reverse()).reverse());}
+  else if(dir==='up'){b=rotate(rotate(rotate(b.map(slideRow).map(r=>[...r])))).map(r=>[...r]);
+    // simpler: transpose
+    let t=Array.from({length:4},(_,i)=>b.map(r=>r[i]));
+    t=t.map(slideRow);
+    b=Array.from({length:4},(_,i)=>t.map(r=>r[i]));
+  }
+  else if(dir==='down'){
+    let t=Array.from({length:4},(_,i)=>b.map(r=>r[i]).reverse());
+    t=t.map(slideRow);
+    b=Array.from({length:4},(_,i)=>t.map(r=>r[i]).reverse());
+  }
+  if(JSON.stringify(b)!==JSON.stringify(g2Board)){moved=true;g2Board=b;}
+  if(moved){add2048Tile();document.getElementById('g2-sc').textContent=g2Sc;draw2048();}
+  if(g2Board.some(r=>r.includes(2048))){document.getElementById('g2-title').textContent='🏆 2048!';document.getElementById('g2-fin').textContent=g2Sc;document.getElementById('g2048-ov').style.display='flex';return;}
+  const hasMove=g2Board.some((r,ri)=>r.some((v,ci)=>!v||v===g2Board[ri][ci+1]||v===(g2Board[ri+1]||[])[ci]));
+  if(!hasMove){document.getElementById('g2-title').textContent='Гра закінчена!';document.getElementById('g2-fin').textContent=g2Sc;document.getElementById('g2048-ov').style.display='flex';}
+}
+// swipe for 2048
+let swX,swY;
+document.getElementById('g2048-board').addEventListener('touchstart',e=>{swX=e.touches[0].clientX;swY=e.touches[0].clientY;},{passive:true});
+document.getElementById('g2048-board').addEventListener('touchend',e=>{
+  if(cur!=='g2048')return;
+  const dx=e.changedTouches[0].clientX-swX,dy=e.changedTouches[0].clientY-swY;
+  if(Math.abs(dx)>Math.abs(dy))move2048(dx>0?'right':'left');
+  else move2048(dy>0?'down':'up');
+},{passive:true});
+
+// ══════════ MEMORY ══════════
+const EMOJIS=['🍎','🌟','🎮','📚','🎯','🐍','🧩','🔢'];
+let memCards,memFlipped,memMatched,memLock,memSec,memMoves;
+function initMemory(){
+  const pairs=[...EMOJIS,...EMOJIS].sort(()=>Math.random()-.5);
+  memCards=pairs.map((e,i)=>({id:i,emoji:e,flipped:false,matched:false}));
+  memFlipped=[];memMatched=0;memLock=false;memSec=0;memMoves=0;
+  document.getElementById('mem-t').textContent=0;
+  document.getElementById('mem-mv').textContent=0;
+  document.getElementById('mem-ov').style.display='none';
+  stopAll();
+  addTimer(setInterval(()=>{ memSec++; document.getElementById('mem-t').textContent=memSec; },1000));
+  renderMemory();
+}
+function renderMemory(){
+  const b=document.getElementById('mem-board');
+  b.innerHTML='';
+  memCards.forEach((card,i)=>{
+    const d=document.createElement('div');
+    d.style.cssText=`height:65px;border-radius:10px;border:2px solid var(--b);background:${card.flipped||card.matched?'var(--s)':'var(--a)'};display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;transition:.2s;`;
+    d.textContent=card.flipped||card.matched?card.emoji:'';
+    if(!card.matched)d.addEventListener('click',()=>flipCard(i));
+    b.appendChild(d);
+  });
+}
+function flipCard(i){
+  if(memLock||memCards[i].flipped||memCards[i].matched)return;
+  memCards[i].flipped=true;memFlipped.push(i);renderMemory();
+  if(memFlipped.length===2){
+    memMoves++;document.getElementById('mem-mv').textContent=memMoves;
+    memLock=true;
+    const[a,b2]=memFlipped;
+    if(memCards[a].emoji===memCards[b2].emoji){
+      memCards[a].matched=memCards[b2].matched=true;memMatched++;memFlipped=[];memLock=false;
+      renderMemory();
+      if(memMatched===EMOJIS.length){ stopAll(); document.getElementById('mem-fin').textContent=memSec; document.getElementById('mem-mv2').textContent=memMoves; document.getElementById('mem-ov').style.display='flex'; }
+    } else {
+      addTimer(setTimeout(()=>{ memCards[a].flipped=memCards[b2].flipped=false;memFlipped=[];memLock=false;renderMemory(); },900));
+    }
   }
 }
 
-function drawShoot(){
-  TX.fillStyle='#111318'; TX.fillRect(0,0,300,300);
-  targets.forEach(t=>{
-    // shadow
-    TX.fillStyle='rgba(0,0,0,.3)';
-    TX.beginPath();TX.ellipse(t.x+3,t.y+3,t.r,t.r*.3,0,0,Math.PI*2);TX.fill();
-    // target rings
-    [t.r, t.r*.65, t.r*.35].forEach((r,i)=>{
-      TX.fillStyle=i%2===0?t.color:'#fff';
-      TX.beginPath();TX.arc(t.x,t.y,r,0,Math.PI*2);TX.fill();
-    });
-    // center dot
-    TX.fillStyle='#111';
-    TX.beginPath();TX.arc(t.x,t.y,t.r*.12,0,Math.PI*2);TX.fill();
-    // life bar
-    TX.fillStyle='#1a1d27';TX.fillRect(t.x-t.r,t.y-t.r-8,t.r*2,5);
-    TX.fillStyle=t.color;TX.fillRect(t.x-t.r,t.y-t.r-8,t.r*2*(t.life/13),5);
-  });
-}
-
-TC.addEventListener('click',e=>{
-  if(!shootRunning) return;
-  const rect=TC.getBoundingClientRect();
-  const mx=(e.clientX-rect.left)*(300/rect.width);
-  const my=(e.clientY-rect.top)*(300/rect.height);
-  let hit=false;
-  targets=targets.filter(t=>{
-    const d=Math.hypot(mx-t.x,my-t.y);
-    if(d<t.r){ hit=true; shootScore++; document.getElementById('shoot-score').textContent=shootScore; return false; }
-    return true;
-  });
-  if(hit&&targets.length===0) spawnTarget();
+// ══════════ KEYBOARD ══════════
+document.addEventListener('keydown',e=>{
+  if(cur==='snake'){if(e.key==='ArrowUp')sd(0,-1);if(e.key==='ArrowDown')sd(0,1);if(e.key==='ArrowLeft')sd(-1,0);if(e.key==='ArrowRight')sd(1,0);}
+  if(cur==='maze'){if(e.key==='ArrowUp')mm(0,-1);if(e.key==='ArrowDown')mm(0,1);if(e.key==='ArrowLeft')mm(-1,0);if(e.key==='ArrowRight')mm(1,0);e.preventDefault();}
+  if(cur==='tetris'){if(e.key==='ArrowLeft')tetMove(-1);if(e.key==='ArrowRight')tetMove(1);if(e.key==='ArrowUp')tetRotate();if(e.key==='ArrowDown')tetDrop();}
+  if(cur==='g2048'){if(e.key==='ArrowLeft')move2048('left');if(e.key==='ArrowRight')move2048('right');if(e.key==='ArrowUp')move2048('up');if(e.key==='ArrowDown')move2048('down');e.preventDefault();}
 });
-
-TC.addEventListener('touchstart',e=>{
-  e.preventDefault();
-  const touch=e.touches[0];
-  TC.dispatchEvent(new MouseEvent('click',{clientX:touch.clientX,clientY:touch.clientY}));
-},{passive:false});
-
-// init first draw
-drawSnake();
 </script>
 </body>
 </html>
