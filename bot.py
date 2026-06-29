@@ -679,7 +679,10 @@ async def button_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
     elif data.startswith("branch_filter_"):
         bid = data[len("branch_filter_"):]
-        ids = [k for k, t in get_tutors().items() if t["branch"] == bid]
+        def in_branch(t, bid):
+            bl = t.get("branches", [t["branch"]] if t.get("branch") else [])
+            return bid in bl
+        ids = [k for k, t in get_tutors().items() if in_branch(t, bid)]
         bname = branch_name(bid)
         if ids:
             await show_tutor_list(q, ids, f"tutors_by_branch",
@@ -699,7 +702,8 @@ async def button_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             return
 
         subj_list  = "  ".join(subject_name(s) for s in t["subjects"])
-        branch_txt = branch_name(t["branch"])
+        branches_list = t.get("branches", [t["branch"]] if t.get("branch") else [])
+        branch_txt = ", ".join(branch_name(b) for b in branches_list) if branches_list else "—"
         schedule   = format_schedule(t["schedule"])
 
         caption = (
