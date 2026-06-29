@@ -65,19 +65,9 @@ def get_about():    return load_db().get("about", {})
 
 def build_center_info():
     ab = get_about()
-    if not ab:
-        return CENTER_INFO
-    name = ab.get("name", "Konstantа")
-    year = ab.get("year", "2010")
-    mission = ab.get("mission", "")
-    achs = ab.get("achievements", [])
-    ach_txt = chr(10).join("• " + a for a in achs)
-    return (
-        "🎓 *" + name + "*" + chr(10) + chr(10) +
-        "Ми працюємо з " + year + " року." + chr(10) + chr(10) +
-        "📌 *Наша місія:* " + mission + chr(10) + chr(10) +
-        "🏆 *Наші досягнення:*" + chr(10) + ach_txt
-    )
+    if ab and ab.get("text"):
+        return ab["text"]
+    return CENTER_INFO
 
 def save_feedback(user, text, rating):
     """Зберегти відгук у data.json."""
