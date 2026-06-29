@@ -916,19 +916,8 @@ function updatePreview(){
   const graduates=document.getElementById('ab-graduates')?.value||'';
   const nmt=document.getElementById('ab-nmt')?.value||'';
   const exp=document.getElementById('ab-exp')?.value||'';
-  const achs=getAchievements().filter(Boolean).map(a=>`• ${a}`).join('
-');
-  const preview=`🎓 ${name}
-
-Працюємо з ${year} року.
-
-📌 Місія: ${mission}
-
-🏆 Досягнення:
-${achs}
-
-⭐ Рейтинг ${rating} | 🎓 ${graduates}+ випускників
-✅ ${nmt}% НМТ | 📅 ${exp}+ років`;
+  const achs=getAchievements().filter(Boolean).map(a=>'• '+a).join('\n');
+  const preview='🎓 '+name+'\n\nПрацюємо з '+year+' року.\n\n📌 Місія: '+mission+'\n\n🏆 Досягнення:\n'+achs+'\n\n⭐ Рейтинг '+rating+' | 🎓 '+graduates+'+ випускників\n✅ '+nmt+'% НМТ | 📅 '+exp+'+ років';
   const el=document.getElementById('ab-preview');
   if(el) el.textContent=preview;
 }
