@@ -1005,7 +1005,12 @@ class AdminHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         path = urlparse(self.path).path
         if path == "/" or path == "/admin":
-            self._send(200, "text/html", ADMIN_HTML.encode("utf-8"))
+            admin_html = os.path.join(os.path.dirname(os.path.abspath(__file__)), "admin.html")
+            try:
+                with open(admin_html, "rb") as f:
+                    self._send(200, "text/html", f.read())
+            except FileNotFoundError:
+                self._send(404, "text/plain", b"admin.html not found")
         elif path == "/games":
             # Пробуємо кілька можливих шляхів
             possible = [
