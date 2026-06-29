@@ -839,6 +839,11 @@ class AdminHandler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path
         if path == "/" or path == "/admin":
             self._send(200, "text/html", ADMIN_HTML.encode("utf-8"))
+        elif path == "/games":
+            games_file = os.path.join(os.path.dirname(__file__), "games.html")
+            with open(games_file, "rb") as f:
+                self._send(200, "text/html", f.read())
+
         elif path == "/api/data":
             d = load_data()
             self._send(200, "application/json", json.dumps(d, ensure_ascii=False).encode())
