@@ -61,6 +61,23 @@ def get_branches(): return load_db().get("branches", {})
 def get_subjects(): return load_db().get("subjects", {})
 def get_tests():    return load_db().get("tests", {})
 def get_games():    return load_db().get("games", {})
+def get_about():    return load_db().get("about", {})
+
+def build_center_info():
+    ab = get_about()
+    if not ab:
+        return CENTER_INFO
+    name = ab.get("name", "Konstantа")
+    year = ab.get("year", "2010")
+    mission = ab.get("mission", "")
+    achs = ab.get("achievements", [])
+    ach_txt = chr(10).join("• " + a for a in achs)
+    return (
+        "🎓 *" + name + "*" + chr(10) + chr(10) +
+        "Ми працюємо з " + year + " року." + chr(10) + chr(10) +
+        "📌 *Наша місія:* " + mission + chr(10) + chr(10) +
+        "🏆 *Наші досягнення:*" + chr(10) + ach_txt
+    )
 
 def save_feedback(user, text, rating):
     """Зберегти відгук у data.json."""
@@ -545,7 +562,7 @@ async def button_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             [InlineKeyboardButton("📍 Наші філіали", callback_data="branches")],
             [InlineKeyboardButton("🏠 Меню",         callback_data="main_menu")],
         ])
-        await q.edit_message_text(CENTER_INFO, parse_mode="Markdown", reply_markup=kb)
+        await q.edit_message_text(build_center_info(), parse_mode="Markdown", reply_markup=kb)
 
     # ── ФІЛІАЛИ ─────────────────────────────────────────
     elif data == "branches":
