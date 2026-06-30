@@ -36,27 +36,34 @@ async def notify(bot, msg: str):
 
 async def send_to_crm(lead_type: str, user, text: str = "", extra: dict | None = None):
     """
-    Надсилає лід у власну CRM клієнта через webhook (POST-запит з JSON).
+    Надсилає лід у CRM клієнта (Supabase Edge Function) через POST-запит з JSON.
     Налаштовується змінною середовища CRM_WEBHOOK_URL у Railway Variables —
     якщо вона порожня, функція нічого не робить (CRM просто не підключена).
 
+    Формат payload відповідає схемі CRM клієнта: fn, ln, phone, subject, notes, src.
+    Telegram не надає номер телефону користувача автоматично — якщо бот ще не
+    зібрав phone окремим кроком (кнопка "Поділитися контактом"), поле буде
+    порожнім, а сирий текст заявки потрапить у notes, щоб менеджер міг
+    зателефонувати за вказаним там номером вручну.
+
     lead_type: "enrollment" (заявка на запис) або "feedback" (відгук)
-    extra: додаткові поля (наприклад, ім'я репетитора, оцінка)
+    extra: додаткові поля для підстановки в payload (subject, phone тощо)
     """
     if not CRM_WEBHOOK_URL:
         return
+
+    extra = extra or {}
+    full_name = (user.first_name or "").strip()
+    last_name = (user.last_name or "").strip()
+
     payload = {
-        "type": lead_type,
-        "source": "telegram_bot",
-        "telegram_id": user.id,
-        "first_name": user.first_name,
-        "last_name": user.last_name or "",
-        "username": user.username or "",
-        "text": text,
-        "timestamp": __import__("datetime").datetime.utcnow().isoformat() + "Z",
+        "fn": full_name or (user.username or f"tg_{user.id}"),
+        "ln": last_name,
+        "phone": extra.get("phone", ""),
+        "subject": extra.get("subject", lead_type),
+        "notes": text,
+        "src": "bot",
     }
-    if extra:
-        payload.update(extra)
 
     headers = {"Content-Type": "application/json"}
     if CRM_WEBHOOK_SECRET:
@@ -837,7 +844,7 @@ async def text_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await notify(ctx.bot, admin_msg)
         await send_to_crm(
             "enrollment", user, user_text,
-            extra={"tutor_name": tutor_name} if tutor_name else None
+            extra={"subject": tutor_name} if tutor_name else None
         )
         ctx.user_data.pop("awaiting", None)
         await update.message.reply_text(
