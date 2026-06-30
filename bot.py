@@ -8,7 +8,7 @@ import json
 import os
 import logging
 import random
-from config import BOT_TOKEN, ADMIN_CHAT_ID, ADMIN_PASSWORD
+from config import BOT_TOKEN, ADMIN_CHAT_ID, ADMIN_PASSWORD, CRM_WEBHOOK_URL, CRM_WEBHOOK_SECRET
 GAMES_URL = os.environ.get("GAMES_URL", "")  # URL вашого Railway сервісу + /games
 from admin import start_admin_in_thread
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
@@ -32,6 +32,46 @@ async def notify(bot, msg: str):
         await bot.send_message(ADMIN_CHAT_ID, msg, parse_mode="Markdown")
     except Exception as e:
         logging.error(f"notify error: {e}")
+
+
+async def send_to_crm(lead_type: str, user, text: str = "", extra: dict | None = None):
+    """
+    Надсилає лід у власну CRM клієнта через webhook (POST-запит з JSON).
+    Налаштовується змінною середовища CRM_WEBHOOK_URL у Railway Variables —
+    якщо вона порожня, функція нічого не робить (CRM просто не підключена).
+
+    lead_type: "enrollment" (заявка на запис) або "feedback" (відгук)
+    extra: додаткові поля (наприклад, ім'я репетитора, оцінка)
+    """
+    if not CRM_WEBHOOK_URL:
+        return
+    payload = {
+        "type": lead_type,
+        "source": "telegram_bot",
+        "telegram_id": user.id,
+        "first_name": user.first_name,
+        "last_name": user.last_name or "",
+        "username": user.username or "",
+        "text": text,
+        "timestamp": __import__("datetime").datetime.utcnow().isoformat() + "Z",
+    }
+    if extra:
+        payload.update(extra)
+
+    headers = {"Content-Type": "application/json"}
+    if CRM_WEBHOOK_SECRET:
+        headers["Authorization"] = f"Bearer {CRM_WEBHOOK_SECRET}"
+
+    try:
+        import httpx
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.post(CRM_WEBHOOK_URL, json=payload, headers=headers)
+            if resp.status_code >= 400:
+                logging.warning(f"CRM webhook відповів помилкою {resp.status_code}: {resp.text[:200]}")
+    except Exception as e:
+        # Заявка чи відгук вже збережені й надіслані адміну в Telegram незалежно
+        # від CRM — тому помилка CRM не повинна ламати основний потік користувача.
+        logging.error(f"CRM webhook error: {e}")
 
 
 # ═══════════════════════════════════════════════════════════
@@ -683,6 +723,7 @@ async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data)
             f"Оцінка: {star_str} ({stars}/5)"
         )
         await notify(ctx.bot, admin_msg)
+        await send_to_crm("feedback", user, feedback_text, extra={"rating": stars})
         save_feedback(user, feedback_text, stars)
         ctx.user_data.pop("awaiting", None)
         await safe_edit(q, 
@@ -782,8 +823,10 @@ async def text_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         user = update.effective_user
         tid  = awaiting.replace("enroll_", "") if "_" in awaiting else None
         tutor_info = ""
+        tutor_name = None
         if tid and tid in get_tutors():
-            tutor_info = f"\nРепетитор: {get_tutors()[tid]['name']}"
+            tutor_name = get_tutors()[tid]["name"]
+            tutor_info = f"\nРепетитор: {tutor_name}"
         admin_msg = (
             f"📋 *Нова заявка на запис!*\n\n"
             f"👤 {user.first_name} {user.last_name or ''} "
@@ -792,6 +835,10 @@ async def text_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             f"📝 {user_text}"
         )
         await notify(ctx.bot, admin_msg)
+        await send_to_crm(
+            "enrollment", user, user_text,
+            extra={"tutor_name": tutor_name} if tutor_name else None
+        )
         ctx.user_data.pop("awaiting", None)
         await update.message.reply_text(
             "📨 Заявку отримано! Ми зателефонуємо вам найближчим часом. 🙏",
