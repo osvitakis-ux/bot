@@ -1072,8 +1072,14 @@ class AdminHandler(BaseHTTPRequestHandler):
             photo_b64 = body.get("photo_b64", "")
             # Store photo as base64 data URL in data.json photos dict
             d = load_data()
-            photo_id = "photo_" + str(uuid.uuid4())[:8]
-            d.setdefault("photos", {})[photo_id] = photo_b64
+            photos = d.setdefault("photos", {})
+            # Повний UUID4 (32 hex-символи) практично виключає колізії між
+            # різними завантаженими фото; додатково перевіряємо унікальність
+            # ключа на випадок теоретичного співпадіння.
+            photo_id = "photo_" + uuid.uuid4().hex
+            while photo_id in photos:
+                photo_id = "photo_" + uuid.uuid4().hex
+            photos[photo_id] = photo_b64
             save_data(d)
             self._send(200, "application/json", json.dumps({"ok": True, "photo_id": photo_id}).encode())
 
