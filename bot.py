@@ -730,7 +730,6 @@ async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data)
             f"Оцінка: {star_str} ({stars}/5)"
         )
         await notify(ctx.bot, admin_msg)
-        await send_to_crm("feedback", user, feedback_text, extra={"rating": stars})
         save_feedback(user, feedback_text, stars)
         ctx.user_data.pop("awaiting", None)
         await safe_edit(q, 
