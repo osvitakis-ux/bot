@@ -732,7 +732,6 @@ async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data)
             f"Оцінка: {star_str} ({stars}/5)"
         )
         await notify(ctx.bot, admin_msg)
-        
         save_feedback(user, feedback_text, stars)
         ctx.user_data.pop("awaiting", None)
         await safe_edit(q, 
@@ -786,13 +785,17 @@ async def text_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         ctx.user_data["feedback_text"] = user_text
         await update.message.reply_text(
             "Дякуємо! 🙏 Тепер оцініть нас від 1 до 5 ⭐",
-            reply_markup=InlineKeyboardMarkup([[
-                InlineKeyboardButton("⭐",     callback_data="rate_1"),
-                InlineKeyboardButton("⭐⭐",   callback_data="rate_2"),
-                InlineKeyboardButton("⭐⭐⭐", callback_data="rate_3"),
-                InlineKeyboardButton("⭐⭐⭐⭐",   callback_data="rate_4"),
-                InlineKeyboardButton("⭐⭐⭐⭐⭐", callback_data="rate_5"),
-            ]]),
+            reply_markup=InlineKeyboardMarkup([
+                [
+                    InlineKeyboardButton("⭐", callback_data="rate_1"),
+                    InlineKeyboardButton("⭐⭐", callback_data="rate_2"),
+                    InlineKeyboardButton("⭐⭐⭐", callback_data="rate_3"),
+                ],
+                [
+                    InlineKeyboardButton("⭐⭐⭐⭐", callback_data="rate_4"),
+                    InlineKeyboardButton("⭐⭐⭐⭐⭐", callback_data="rate_5"),
+                ],
+            ]),
         )
 
     elif awaiting == "game_answer":
