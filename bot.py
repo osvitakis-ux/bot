@@ -230,6 +230,23 @@ async def button_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await q.answer()
     data = q.data
 
+    try:
+        await _route_button(update, ctx, q, data)
+    except Exception as e:
+        logging.error(f"button_handler error on data='{data}': {e}", exc_info=True)
+        try:
+            await q.edit_message_text(
+                "⚠️ Сталася помилка. Спробуйте ще раз або поверніться в меню.",
+                reply_markup=InlineKeyboardMarkup([[
+                    InlineKeyboardButton("🏠 Головне меню", callback_data="main_menu")
+                ]])
+            )
+        except Exception:
+            pass
+
+
+async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data):
+
     # ── ГОЛОВНЕ МЕНЮ ────────────────────────────────────
     if data == "main_menu":
         await q.edit_message_text(
