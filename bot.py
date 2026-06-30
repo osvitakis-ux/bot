@@ -174,7 +174,7 @@ async def safe_edit(q, text, parse_mode="Markdown", reply_markup=None):
                 caption=text, parse_mode=parse_mode, reply_markup=reply_markup
             )
         else:
-            await safe_edit(q, 
+            await q.edit_message_text(
                 text, parse_mode=parse_mode, reply_markup=reply_markup
             )
     except Exception as e:
