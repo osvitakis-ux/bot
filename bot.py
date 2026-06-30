@@ -568,7 +568,8 @@ async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data)
             f"📞 *Запис до {t.get('name','')}*\n\n"
             f"Телефон філіалу: {b.get('phone','')}\n"
             f"Адреса: {b.get('address','')}\n\n"
-            "Або напишіть своє ім'я та зручний час — ми зателефонуємо самі!"
+            "Або напишіть своє ім'я, зручний час *та номер телефону* — "
+            "ми обов'язково зателефонуємо самі!"
         )
         ctx.user_data["awaiting"] = f"enroll_{tid}"
         await safe_edit(q, text, parse_mode="Markdown", reply_markup=back_to_menu())
@@ -582,7 +583,8 @@ async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data)
                 f"• {b['name']}: {b['phone']}"
                 for b in get_branches().values()
             )
-            + "\n\n💬 Або напишіть ім'я, клас та предмет — ми зателефонуємо!"
+            + "\n\n💬 Або напишіть ім'я, клас, предмет *та обов'язково номер "
+              "телефону* для зв'язку — ми зателефонуємо!"
         )
         ctx.user_data["awaiting"] = "enroll_general"
         await safe_edit(q, text, parse_mode="Markdown", reply_markup=back_to_menu())
@@ -730,6 +732,7 @@ async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data)
             f"Оцінка: {star_str} ({stars}/5)"
         )
         await notify(ctx.bot, admin_msg)
+        
         save_feedback(user, feedback_text, stars)
         ctx.user_data.pop("awaiting", None)
         await safe_edit(q, 
@@ -826,6 +829,22 @@ async def text_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
     elif awaiting and awaiting.startswith("enroll"):
         # заявка на запис (загальна або до репетитора)
+        import re
+        # Шукаємо послідовність цифр довжиною від 9 (без коду країни, напр.
+        # "0991234567") до 13 символів (з "+380..."), толерантно до пробілів,
+        # дефісів і дужок усередині номера.
+        phone_match = re.search(r"(\+?\d[\d\s\-\(\)]{8,20}\d)", user_text)
+
+        if not phone_match:
+            await update.message.reply_text(
+                "📵 Будь ласка, вкажіть і номер телефону для зв'язку — "
+                "без нього менеджер не зможе вам зателефонувати.\n\n"
+                "Напишіть, наприклад: «Іван, 9 клас, математика, 0991234567»"
+            )
+            return
+
+        phone = re.sub(r"[\s\-\(\)]", "", phone_match.group(1))
+
         user = update.effective_user
         tid  = awaiting.replace("enroll_", "") if "_" in awaiting else None
         tutor_info = ""
@@ -838,13 +857,14 @@ async def text_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             f"👤 {user.first_name} {user.last_name or ''} "
             f"(@{user.username or 'без ніку'})\n"
             f"{tutor_info}\n"
+            f"📞 {phone}\n"
             f"📝 {user_text}"
         )
         await notify(ctx.bot, admin_msg)
-        await send_to_crm(
-            "enrollment", user, user_text,
-            extra={"subject": tutor_name} if tutor_name else None
-        )
+        crm_extra = {"phone": phone}
+        if tutor_name:
+            crm_extra["subject"] = tutor_name
+        await send_to_crm("enrollment", user, user_text, extra=crm_extra)
         ctx.user_data.pop("awaiting", None)
         await update.message.reply_text(
             "📨 Заявку отримано! Ми зателефонуємо вам найближчим часом. 🙏",
