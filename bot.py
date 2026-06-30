@@ -162,16 +162,21 @@ def nav(back_target="main_menu", back_label="◀️ Назад"):
 
 async def safe_edit(q, text, parse_mode="Markdown", reply_markup=None):
     """
-    Редагує повідомлення незалежно від того, чи це текстове повідомлення,
-    чи фото з підписом. Telegram вимагає різні методи для цих випадків:
-    edit_message_text для тексту, edit_message_caption для фото.
-    Якщо саме редагування неможливе (наприклад, повідомлення занадто старе),
-    надсилає нове повідомлення замість зламаної кнопки.
+    Редагує повідомлення з урахуванням того, чи поточне повідомлення містить фото.
+
+    Якщо поточне повідомлення — звичайний текст, редагуємо текст як завжди.
+    Якщо поточне повідомлення — фото (наприклад, відкритий профіль репетитора),
+    Telegram не дозволяє перетворити фото-повідомлення на текстове через
+    edit_message_caption (фото залишиться на екрані назавжди). Тому в цьому
+    випадку видаляємо фото-повідомлення і надсилаємо нове текстове замість нього.
     """
     try:
         if q.message and q.message.photo:
-            await q.edit_message_caption(
-                caption=text, parse_mode=parse_mode, reply_markup=reply_markup
+            # Перехід з картки репетитора (фото) на текстовий екран —
+            # видаляємо фото і надсилаємо чистий текст
+            await q.message.delete()
+            await q.message.chat.send_message(
+                text, parse_mode=parse_mode, reply_markup=reply_markup
             )
         else:
             await q.edit_message_text(
@@ -179,7 +184,10 @@ async def safe_edit(q, text, parse_mode="Markdown", reply_markup=None):
             )
     except Exception as e:
         logging.warning(f"safe_edit fallback (sending new message): {e}")
-        await q.message.reply_text(text, parse_mode=parse_mode, reply_markup=reply_markup)
+        try:
+            await q.message.reply_text(text, parse_mode=parse_mode, reply_markup=reply_markup)
+        except Exception as e2:
+            logging.error(f"safe_edit final fallback also failed: {e2}")
 
 
 # ═══════════════════════════════════════════════════════════
