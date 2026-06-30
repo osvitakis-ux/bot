@@ -160,6 +160,28 @@ def nav(back_target="main_menu", back_label="◀️ Назад"):
     ]])
 
 
+async def safe_edit(q, text, parse_mode="Markdown", reply_markup=None):
+    """
+    Редагує повідомлення незалежно від того, чи це текстове повідомлення,
+    чи фото з підписом. Telegram вимагає різні методи для цих випадків:
+    edit_message_text для тексту, edit_message_caption для фото.
+    Якщо саме редагування неможливе (наприклад, повідомлення занадто старе),
+    надсилає нове повідомлення замість зламаної кнопки.
+    """
+    try:
+        if q.message and q.message.photo:
+            await q.edit_message_caption(
+                caption=text, parse_mode=parse_mode, reply_markup=reply_markup
+            )
+        else:
+            await safe_edit(q, 
+                text, parse_mode=parse_mode, reply_markup=reply_markup
+            )
+    except Exception as e:
+        logging.warning(f"safe_edit fallback (sending new message): {e}")
+        await q.message.reply_text(text, parse_mode=parse_mode, reply_markup=reply_markup)
+
+
 # ═══════════════════════════════════════════════════════════
 # ДОПОМІЖНІ ФУНКЦІЇ
 # ═══════════════════════════════════════════════════════════
@@ -235,7 +257,7 @@ async def button_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logging.error(f"button_handler error on data='{data}': {e}", exc_info=True)
         try:
-            await q.edit_message_text(
+            await safe_edit(q, 
                 "⚠️ Сталася помилка. Спробуйте ще раз або поверніться в меню.",
                 reply_markup=InlineKeyboardMarkup([[
                     InlineKeyboardButton("🏠 Головне меню", callback_data="main_menu")
@@ -249,7 +271,7 @@ async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data)
 
     # ── ГОЛОВНЕ МЕНЮ ────────────────────────────────────
     if data == "main_menu":
-        await q.edit_message_text(
+        await safe_edit(q, 
             "🏠 *Головне меню*\nОберіть розділ:",
             parse_mode="Markdown",
             reply_markup=main_menu_keyboard(),
@@ -261,7 +283,7 @@ async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data)
             [InlineKeyboardButton("📍 Наші філіали", callback_data="branches")],
             [InlineKeyboardButton("🏠 Меню",         callback_data="main_menu")],
         ])
-        await q.edit_message_text(build_center_info(), parse_mode="Markdown", reply_markup=kb)
+        await safe_edit(q, build_center_info(), parse_mode="Markdown", reply_markup=kb)
 
     # ── ФІЛІАЛИ ─────────────────────────────────────────
     elif data == "branches":
@@ -269,7 +291,7 @@ async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data)
             [InlineKeyboardButton("📍 " + b["name"], callback_data=f"branch_{k}")]
             for k, b in get_branches().items()
         ] + [[InlineKeyboardButton("🏠 Меню", callback_data="main_menu")]])
-        await q.edit_message_text(
+        await safe_edit(q, 
             "📍 *Наші три філіали*\nОберіть для детальної інформації:",
             parse_mode="Markdown", reply_markup=kb,
         )
@@ -293,7 +315,7 @@ async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data)
                 [InlineKeyboardButton("◀️ Всі філіали", callback_data="branches"),
                  InlineKeyboardButton("🏠 Меню",        callback_data="main_menu")],
             ])
-            await q.edit_message_text(text, parse_mode="Markdown", reply_markup=kb)
+            await safe_edit(q, text, parse_mode="Markdown", reply_markup=kb)
 
     # ── ПРЕДМЕТИ ─────────────────────────────────────────
     elif data == "subjects":
@@ -301,7 +323,7 @@ async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data)
             [InlineKeyboardButton(f"{s['emoji']} {s['name']}", callback_data=f"subj_{k}")]
             for k, s in get_subjects().items()
         ] + [[InlineKeyboardButton("🏠 Меню", callback_data="main_menu")]]
-        await q.edit_message_text(
+        await safe_edit(q, 
             "📚 *Наші предмети*\nОберіть для перегляду програми та цін:",
             parse_mode="Markdown",
             reply_markup=InlineKeyboardMarkup(buttons),
@@ -340,7 +362,7 @@ async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data)
                 + [[InlineKeyboardButton("◀️ Предмети",      callback_data="subjects"),
                     InlineKeyboardButton("🏠 Меню",          callback_data="main_menu")]]
             )
-            await q.edit_message_text(text, parse_mode="Markdown", reply_markup=kb)
+            await safe_edit(q, text, parse_mode="Markdown", reply_markup=kb)
 
     # ── РЕПЕТИТОРИ (список) ──────────────────────────────
     elif data == "tutors":
@@ -350,7 +372,7 @@ async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data)
             [InlineKeyboardButton("👥 Усі репетитори", callback_data="tutors_all")],
             [InlineKeyboardButton("🏠 Меню",           callback_data="main_menu")],
         ])
-        await q.edit_message_text(
+        await safe_edit(q, 
             "👩‍🏫 *Наші репетитори*\nЯк шукаємо?",
             parse_mode="Markdown", reply_markup=kb,
         )
@@ -367,7 +389,7 @@ async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data)
             for k in subs if any(k in t["subjects"] for t in tutors.values())
         ] + [[InlineKeyboardButton("◀️ Назад", callback_data="tutors"),
               InlineKeyboardButton("🏠 Меню",   callback_data="main_menu")]]
-        await q.edit_message_text(
+        await safe_edit(q, 
             "📚 Оберіть предмет:", parse_mode="Markdown",
             reply_markup=InlineKeyboardMarkup(buttons),
         )
@@ -379,7 +401,7 @@ async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data)
             await show_tutor_list(q, ids, f"tutors_subj_{key}",
                                   title=f"{subject_name(key)} — репетитори")
         else:
-            await q.edit_message_text(
+            await safe_edit(q, 
                 "На жаль, за цим предметом поки немає доступних репетиторів.",
                 reply_markup=nav("tutors"),
             )
@@ -390,7 +412,7 @@ async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data)
             for k, b in get_branches().items()
         ] + [[InlineKeyboardButton("◀️ Назад", callback_data="tutors"),
               InlineKeyboardButton("🏠 Меню",   callback_data="main_menu")]]
-        await q.edit_message_text(
+        await safe_edit(q, 
             "📍 Оберіть філіал:", parse_mode="Markdown",
             reply_markup=InlineKeyboardMarkup(buttons),
         )
@@ -406,7 +428,7 @@ async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data)
             await show_tutor_list(q, ids, f"tutors_by_branch",
                                   title=f"{bname} — репетитори")
         else:
-            await q.edit_message_text(
+            await safe_edit(q, 
                 f"У філіалі «{bname}» поки немає репетиторів у базі.",
                 reply_markup=nav("tutors_by_branch"),
             )
@@ -416,7 +438,7 @@ async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data)
         tid = data[len("tutor_"):]
         t = get_tutors().get(tid)
         if not t:
-            await q.edit_message_text("Репетитора не знайдено.", reply_markup=nav())
+            await safe_edit(q, "Репетитора не знайдено.", reply_markup=nav())
             return
 
         subj_list  = "  ".join(subject_name(s) for s in t["subjects"])
@@ -468,7 +490,7 @@ async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data)
                 )
                 await q.message.delete()
             else:
-                await q.edit_message_text(caption, parse_mode="Markdown", reply_markup=kb)
+                await safe_edit(q, caption, parse_mode="Markdown", reply_markup=kb)
         elif photo_id:
             # Telegram file_id — надсилаємо напряму
             await q.message.reply_photo(
@@ -480,7 +502,7 @@ async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data)
             await q.message.delete()
         else:
             # фото ще немає — просто текст
-            await q.edit_message_text(caption, parse_mode="Markdown", reply_markup=kb)
+            await safe_edit(q, caption, parse_mode="Markdown", reply_markup=kb)
 
     # ── ЗАПИС ДО КОНКРЕТНОГО РЕПЕТИТОРА ─────────────────
     elif data.startswith("enroll_tutor_"):
@@ -494,7 +516,7 @@ async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data)
             "Або напишіть своє ім'я та зручний час — ми зателефонуємо самі!"
         )
         ctx.user_data["awaiting"] = f"enroll_{tid}"
-        await q.edit_message_text(text, parse_mode="Markdown", reply_markup=back_to_menu())
+        await safe_edit(q, text, parse_mode="Markdown", reply_markup=back_to_menu())
 
     # ── ЗАГАЛЬНИЙ ЗАПИС ──────────────────────────────────
     elif data == "enroll":
@@ -508,7 +530,7 @@ async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data)
             + "\n\n💬 Або напишіть ім'я, клас та предмет — ми зателефонуємо!"
         )
         ctx.user_data["awaiting"] = "enroll_general"
-        await q.edit_message_text(text, parse_mode="Markdown", reply_markup=back_to_menu())
+        await safe_edit(q, text, parse_mode="Markdown", reply_markup=back_to_menu())
 
     # ── ІГРИ ─────────────────────────────────────────────
     elif data == "games":
@@ -519,7 +541,7 @@ async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data)
             [InlineKeyboardButton("🧠 Задача-головоломка",    callback_data="game_word")],
             [InlineKeyboardButton("🏠 Меню",                   callback_data="main_menu")],
         ])
-        await q.edit_message_text(
+        await safe_edit(q, 
             "🎮 *Ігри на логіку та кмітливість*\nОберіть тип:",
             parse_mode="Markdown", reply_markup=kb,
         )
@@ -537,7 +559,7 @@ async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data)
             ctx.user_data["current_game"] = {"type": gtype, **p}
             ctx.user_data["awaiting"] = "game_answer"
             title = get_games().get(gtype, {}).get("name", "🧠 Задача")
-            await q.edit_message_text(
+            await safe_edit(q, 
                 f"{title}\n\n❓ *{p['q']}*\n\n💡 Надішліть відповідь текстом",
                 parse_mode="Markdown",
                 reply_markup=InlineKeyboardMarkup([
@@ -561,7 +583,7 @@ async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data)
             )]
             for k, t in get_tests().items()
         ] + [[InlineKeyboardButton("🏠 Меню", callback_data="main_menu")]]
-        await q.edit_message_text(
+        await safe_edit(q, 
             "📝 *Міні-тести*\nПо 5 питань — оберіть предмет:",
             parse_mode="Markdown",
             reply_markup=InlineKeyboardMarkup(buttons),
@@ -579,7 +601,7 @@ async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data)
             }
             await send_test_question(q, ctx)
         else:
-            await q.edit_message_text("🚧 Тест в розробці!", reply_markup=nav("tests"))
+            await safe_edit(q, "🚧 Тест в розробці!", reply_markup=nav("tests"))
 
     elif data.startswith("ans_"):
         ans_idx = int(data.split("_")[1])
@@ -610,7 +632,7 @@ async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data)
                     f"🏆 Результат: *{sc}/{total}* ({pct:.0f}%)\n"
                     f"{grade}"
                 )
-                await q.edit_message_text(
+                await safe_edit(q, 
                     f"{res}\n\n🏁 *Тест завершено!*\n"
                     f"Результат: *{sc}/{total}* ({pct:.0f}%)\n{grade}",
                     parse_mode="Markdown",
@@ -622,7 +644,7 @@ async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data)
                     ]),
                 )
             else:
-                await q.edit_message_text(
+                await safe_edit(q, 
                     f"{res}\n\n_Питання {t['current']}/{total}..._",
                     parse_mode="Markdown",
                 )
@@ -631,7 +653,7 @@ async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data)
     # ── ФІДБЕК ───────────────────────────────────────────
     elif data == "feedback":
         ctx.user_data["awaiting"] = "feedback"
-        await q.edit_message_text(
+        await safe_edit(q, 
             "💬 *Ваш відгук*\n\nНапишіть, що вам сподобалось або що покращити.\n"
             "_(надішліть текстом)_",
             parse_mode="Markdown",
@@ -655,7 +677,7 @@ async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data)
         await notify(ctx.bot, admin_msg)
         save_feedback(user, feedback_text, stars)
         ctx.user_data.pop("awaiting", None)
-        await q.edit_message_text(
+        await safe_edit(q, 
             f"🙏 *Дякуємо за відгук!*\n\n{star_str}\n\nВаша думка дуже важлива для нас!",
             parse_mode="Markdown",
             reply_markup=back_to_menu(),
@@ -669,7 +691,7 @@ async def show_tutor_list(q, ids: list, back_target: str, title: str = "Репе
         for tid in ids if tid in get_tutors()
     ] + [[InlineKeyboardButton("◀️ Назад", callback_data=back_target),
           InlineKeyboardButton("🏠 Меню",  callback_data="main_menu")]]
-    await q.edit_message_text(
+    await safe_edit(q, 
         f"👩‍🏫 *{title}*\nОберіть репетитора для детального профілю:",
         parse_mode="Markdown",
         reply_markup=InlineKeyboardMarkup(buttons),
@@ -689,7 +711,7 @@ async def send_test_question(q, ctx: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton(f"{emojis[i]} {opt}", callback_data=f"ans_{i}")]
         for i, opt in enumerate(qdata["opts"])
     ]
-    await q.edit_message_text(
+    await safe_edit(q, 
         f"📝 *{t['name']}* | Питання {idx+1}/{total}\n\n❓ {qdata['q']}",
         parse_mode="Markdown",
         reply_markup=InlineKeyboardMarkup(buttons),
