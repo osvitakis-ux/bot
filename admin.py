@@ -1011,6 +1011,31 @@ class AdminHandler(BaseHTTPRequestHandler):
                     self._send(200, "text/html", f.read())
             except FileNotFoundError:
                 self._send(404, "text/plain", b"admin.html not found")
+
+        elif path == "/manifest.json":
+            f_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "manifest.json")
+            try:
+                with open(f_path, "rb") as f:
+                    self._send(200, "application/manifest+json", f.read())
+            except FileNotFoundError:
+                self._send(404, "text/plain", b"manifest.json not found")
+
+        elif path == "/sw.js":
+            f_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sw.js")
+            try:
+                with open(f_path, "rb") as f:
+                    self._send(200, "application/javascript", f.read())
+            except FileNotFoundError:
+                self._send(404, "text/plain", b"sw.js not found")
+
+        elif path in ("/icon-192.png", "/icon-512.png"):
+            fname = path.lstrip("/")
+            f_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), fname)
+            try:
+                with open(f_path, "rb") as f:
+                    self._send(200, "image/png", f.read())
+            except FileNotFoundError:
+                self._send(404, "text/plain", b"icon not found")
         elif path == "/games":
             # Пробуємо кілька можливих шляхів
             possible = [
