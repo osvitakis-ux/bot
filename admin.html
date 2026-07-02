@@ -2,8 +2,16 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Константа — Адмін</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Константа">
+<meta name="theme-color" content="#5b6ef5">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <style>
 :root{--bg:#0f1117;--s:#1a1d27;--s2:#222638;--b:#2d3148;--a:#5b6ef5;--ah:#7082ff;--as:rgba(91,110,245,.12);--g:#22c55e;--gs:rgba(34,197,94,.12);--r:#ef4444;--rs:rgba(239,68,68,.12);--am:#f59e0b;--t:#e8eaf0;--tm:#8b90a7;--td:#555870;--rad:10px;--radl:16px}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -837,6 +845,12 @@ function saveAbout(){
 // ── UTILS ──
 function closeMod(id){ document.getElementById(id).classList.remove('open'); }
 function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
+// ── PWA SERVICE WORKER ──
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/sw.js')
+    .then(()=>console.log('SW registered'))
+    .catch(e=>console.warn('SW error:', e));
+}
 </script>
 </body>
 </html>
