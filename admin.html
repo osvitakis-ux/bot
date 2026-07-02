@@ -651,19 +651,58 @@ function renderSubjects(){
 // ── FEEDBACKS ──
 function renderFeedbacks(){
   const fb=D.feedbacks||[];
-  document.getElementById('feedbacks-list').innerHTML=fb.length
-    ? fb.slice().reverse().map(f=>`
-        <div class="card" style="margin-bottom:10px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-            <b>${f.user||'Анонім'}</b><span style="color:var(--am)">${'⭐'.repeat(+f.rating||0)}</span>
-          </div>
-          <div style="font-size:13px;color:var(--tm);margin-bottom:6px">${f.text||''}</div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
-            <div style="font-size:11px;color:var(--td)">${f.date||''}</div>
-            ${f.tg_id ? `<button class="btn btn-g btn-sm" onclick="prefillReply(${f.tg_id},'${(f.user||'').replace(/'/g,'\\'')}')" style="font-size:11px">✉️ Відповісти</button>` : ''}
-          </div>
-        </div>`).join('')
-    : '<div style="color:var(--tm);text-align:center;padding:40px">Відгуків ще немає</div>';
+  const list=document.getElementById('feedbacks-list');
+  if(!fb.length){
+    list.innerHTML='<div style="color:var(--tm);text-align:center;padding:40px">Відгуків ще немає</div>';
+    return;
+  }
+  list.innerHTML='';
+  const reversed=[...fb].reverse();
+  reversed.forEach((f,i)=>{
+    const card=document.createElement('div');
+    card.className='card';
+    card.style.marginBottom='10px';
+    const stars='⭐'.repeat(+f.rating||0);
+    card.innerHTML=
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'+
+        '<b>'+(f.user||'Анонім')+'</b>'+
+        '<span style="color:var(--am)">'+stars+'</span>'+
+      '</div>'+
+      '<div style="font-size:13px;color:var(--tm);margin-bottom:6px">'+(f.text||'')+'</div>'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">'+
+        '<div style="font-size:11px;color:var(--td)">'+(f.date||'')+'</div>'+
+        '<div style="display:flex;gap:6px" id="fb-btns-'+i+'"></div>'+
+      '</div>';
+    list.appendChild(card);
+    const btns=document.getElementById('fb-btns-'+i);
+    if(f.tg_id){
+      const rb=document.createElement('button');
+      rb.className='btn btn-g btn-sm';
+      rb.style.fontSize='11px';
+      rb.textContent='✉️ Відповісти';
+      rb.onclick=()=>prefillReply(f.tg_id, f.user||'');
+      btns.appendChild(rb);
+    }
+    const db=document.createElement('button');
+    db.className='btn btn-d btn-sm';
+    db.style.fontSize='11px';
+    db.textContent='🗑';
+    db.onclick=()=>deleteFeedback(i);
+    btns.appendChild(db);
+  });
+}
+
+function deleteFeedback(idx){
+  const fb=D.feedbacks||[];
+  const reversed=[...fb].reverse();
+  const realIdx=fb.length-1-idx;
+  const item=reversed[idx];
+  const who=item?item.user||'клієнта':'клієнта';
+  if(!confirm('Видалити відгук від '+who+'?')) return;
+  fb.splice(realIdx,1);
+  saveSection('feedbacks', fb);
+  renderFeedbacks();
+  showToast('🗑 Відгук видалено');
 }
 
 function prefillReply(tg_id, username){
@@ -696,7 +735,7 @@ async function sendMsgToUser(){
       status.style.color = 'var(--r)';
     }
   } catch(e){
-    status.textContent = '❌ Помилка зв'язку';
+    status.textContent = '❌ Помилка зв\'язку';
     status.style.color = 'var(--r)';
   }
 }
