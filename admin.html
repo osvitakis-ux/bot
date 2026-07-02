@@ -154,6 +154,21 @@ hr{border:none;border-top:1px solid var(--b);margin:18px 0}
   <!-- FEEDBACKS -->
   <div class="page" id="page-feedbacks">
     <div class="ph"><h2>Відгуки</h2><p>Всі відгуки від клієнтів через бота</p></div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header"><span class="card-title">✉️ Написати клієнту</span></div>
+      <div class="fg" style="margin-bottom:12px">
+        <div class="field">
+          <label>Telegram ID клієнта</label>
+          <input id="msg-uid" placeholder="623603494" type="number">
+        </div>
+        <div class="field ffw">
+          <label>Повідомлення</label>
+          <textarea id="msg-text" rows="3" placeholder="Доброго дня! Дякуємо за ваш відгук..."></textarea>
+        </div>
+      </div>
+      <button class="btn btn-p" onclick="sendMsgToUser()">📨 Надіслати</button>
+      <span id="msg-status" style="font-size:12px;color:var(--tm);margin-left:12px"></span>
+    </div>
     <div id="feedbacks-list"></div>
   </div>
 
@@ -643,9 +658,47 @@ function renderFeedbacks(){
             <b>${f.user||'Анонім'}</b><span style="color:var(--am)">${'⭐'.repeat(+f.rating||0)}</span>
           </div>
           <div style="font-size:13px;color:var(--tm);margin-bottom:6px">${f.text||''}</div>
-          <div style="font-size:11px;color:var(--td)">${f.date||''}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+            <div style="font-size:11px;color:var(--td)">${f.date||''}</div>
+            ${f.tg_id ? `<button class="btn btn-g btn-sm" onclick="prefillReply(${f.tg_id},'${(f.user||'').replace(/'/g,'\\'')}')" style="font-size:11px">✉️ Відповісти</button>` : ''}
+          </div>
         </div>`).join('')
     : '<div style="color:var(--tm);text-align:center;padding:40px">Відгуків ще немає</div>';
+}
+
+function prefillReply(tg_id, username){
+  document.getElementById('msg-uid').value = tg_id;
+  document.getElementById('msg-text').focus();
+  document.getElementById('msg-status').textContent = 'Відповідь для ' + username;
+}
+
+async function sendMsgToUser(){
+  const uid = document.getElementById('msg-uid').value.trim();
+  const text = document.getElementById('msg-text').value.trim();
+  const status = document.getElementById('msg-status');
+  if(!uid){alert('Введіть Telegram ID');return;}
+  if(!text){alert('Введіть текст повідомлення');return;}
+  status.textContent = '⏳ Надсилаємо...';
+  status.style.color = 'var(--tm)';
+  try {
+    const resp = await fetch('/api/send_message', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({user_id: parseInt(uid), text})
+    });
+    const r = await resp.json();
+    if(r.ok){
+      status.textContent = '✅ Надіслано!';
+      status.style.color = 'var(--g)';
+      document.getElementById('msg-text').value = '';
+    } else {
+      status.textContent = '❌ ' + (r.error||'Помилка');
+      status.style.color = 'var(--r)';
+    }
+  } catch(e){
+    status.textContent = '❌ Помилка зв'язку';
+    status.style.color = 'var(--r)';
+  }
 }
 
 // ── TESTS ──
