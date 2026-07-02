@@ -117,12 +117,13 @@ def build_center_info():
     return CENTER_INFO
 
 def save_feedback(user, text, rating):
-    """Зберегти відгук у data.json."""
+    """Зберегти відгук у data.json (з tg_id для можливості відповіді)."""
     try:
         d = load_db()
         import datetime
         d.setdefault("feedbacks", []).append({
-            "user": f"@{user.username or user.first_name}",
+            "user": f"@{user.username}" if user.username else user.first_name,
+            "tg_id": user.id,
             "text": text,
             "rating": rating,
             "date": datetime.date.today().strftime("%d.%m.%Y")
