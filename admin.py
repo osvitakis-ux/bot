@@ -1108,6 +1108,35 @@ class AdminHandler(BaseHTTPRequestHandler):
             save_data(d)
             self._send(200, "application/json", json.dumps({"ok": True, "photo_id": photo_id}).encode())
 
+        elif path == "/api/send_message":
+            user_id = body.get("user_id")
+            text = body.get("text", "").strip()
+            if not user_id or not text:
+                self._send(400, "application/json", b'{"ok":false,"error":"user_id and text required"}')
+            else:
+                try:
+                    import asyncio, httpx
+                    token = os.environ.get("BOT_TOKEN", "")
+                    url = f"https://api.telegram.org/bot{token}/sendMessage"
+                    async def _send_tg():
+                        async with httpx.AsyncClient(timeout=10) as client:
+                            r = await client.post(url, json={
+                                "chat_id": user_id,
+                                "text": text,
+                                "parse_mode": "Markdown"
+                            })
+                            return r.json()
+                    result = asyncio.run(_send_tg())
+                    if result.get("ok"):
+                        self._send(200, "application/json", b'{"ok":true}')
+                    else:
+                        err = result.get("description", "Unknown error")
+                        self._send(200, "application/json",
+                            json.dumps({"ok": False, "error": err}).encode())
+                except Exception as e:
+                    self._send(500, "application/json",
+                        json.dumps({"ok": False, "error": str(e)}).encode())
+
         elif path == "/api/save":
             section = body.get("section")
             payload = body.get("data")
