@@ -724,17 +724,25 @@ async def _route_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE, q, data)
         feedback_text = ctx.user_data.pop("feedback_text", "")
         user = update.effective_user
         star_str = "⭐" * stars
+
+        # Формуємо посилання на профіль — якщо є username, робимо клікабельне
+        if user.username:
+            contact = f"[@{user.username}](https://t.me/{user.username})"
+        else:
+            # Без username — посилання через tg://user?id=... (відкриває профіль в TG)
+            contact = f"[{user.first_name}](tg://user?id={user.id})"
+
         admin_msg = (
             f"📬 *Новий відгук!*\n\n"
-            f"👤 {user.first_name} {user.last_name or ''} "
-            f"(@{user.username or 'без ніку'})\n"
+            f"👤 {user.first_name} {user.last_name or ''} — {contact}\n"
+            f"🆔 ID: `{user.id}`\n"
             f"📝 {feedback_text}\n"
             f"Оцінка: {star_str} ({stars}/5)"
         )
         await notify(ctx.bot, admin_msg)
         save_feedback(user, feedback_text, stars)
         ctx.user_data.pop("awaiting", None)
-        await safe_edit(q, 
+        await safe_edit(q,
             f"🙏 *Дякуємо за відгук!*\n\n{star_str}\n\nВаша думка дуже важлива для нас!",
             parse_mode="Markdown",
             reply_markup=back_to_menu(),
